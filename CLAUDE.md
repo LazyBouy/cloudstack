@@ -158,6 +158,8 @@ Prefer **several small step pictures to one big diagram**:
 - one colour per CloudStack part, the same in every article;
 - labels with the analogy's name and the technical name in brackets: "kitchen (host)".
 
+A tall picture (a vertical step sequence) would fill the page at the default 3× scale; its source may ask for less with a line `%% render-scale: 1.5`. Never size pictures with MkDocs-only attributes (`{ width=… }`): GitHub's Markdown view prints them as text.
+
 Pictures cost no reading time. Give different kinds of lines visibly different styles, and say in the text what each style means. Mermaid drops an edge's `linkStyle` where edges cross; `.github/scripts/check-diagram-styles.py` catches it. If a style drops, reorder the nodes.
 
 ### Tooling: containers only

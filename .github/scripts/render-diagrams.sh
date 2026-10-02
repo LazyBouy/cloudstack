@@ -6,6 +6,12 @@
 #
 #   .github/scripts/render-diagrams.sh                    # every diagram
 #   .github/scripts/render-diagrams.sh path/to/x.mmd ...  # just these
+#
+# Pictures render at three times their natural size, so they stay sharp when
+# enlarged. A tall picture (a vertical step sequence) would then fill the page
+# on the site and on GitHub, so its source may ask for a smaller scale with a
+# line of its own:   %% render-scale: 1.5
+# (the PNG then shows at a modest size everywhere, with no MkDocs-only width).
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -20,10 +26,11 @@ fi
 for src in "${sources[@]}"; do
   dir=$(dirname "$src")
   file=$(basename "$src")
-  echo "rendering $src"
-  # -s 3: three times the natural size, so the picture stays sharp when enlarged.
+  scale=$(sed -n 's/^%% render-scale: *\([0-9.]*\) *$/\1/p' "$src" | head -n 1)
+  scale=${scale:-3}
+  echo "rendering $src (scale $scale)"
   docker run --rm -u "$(id -u):$(id -g)" -v "$PWD/$dir":/data "$MERMAID_IMAGE" \
-    -q -i "$file" -o "${file%.mmd}.png" -s 3 -b white
+    -q -i "$file" -o "${file%.mmd}.png" -s "$scale" -b white
 
   # Record this source's checksum, replacing any older entry for it.
   manifest="$dir/manifest.sha256"
