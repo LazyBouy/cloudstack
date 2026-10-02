@@ -1,0 +1,24 @@
+%%{init: {"flowchart": {"wrappingWidth": 340}}}%%
+flowchart LR
+    %% Palette shared by every picture of post 02 (head office, staff-only and site colours as in 01-hotel)
+    classDef office fill:#FDF4FF,stroke:#E879F9,color:#28253D
+    classDef back fill:#F0FDFA,stroke:#2DD4BF,color:#28253D
+    classDef site fill:#FFF7ED,stroke:#FB923C,color:#28253D
+    classDef floor fill:#ECFEFF,stroke:#22D3EE,color:#28253D
+    classDef staff fill:#F0FDF4,stroke:#4ADE80,color:#28253D
+    classDef store fill:#F5F3FF,stroke:#A78BFA,color:#28253D
+    classDef building fill:#FEF2F2,stroke:#F87171,color:#28253D
+    classDef wing fill:#F8FAFC,stroke:#64748B,color:#28253D
+    classDef city fill:#FFFFFF,stroke:#94A3B8,color:#28253D
+    classDef note fill:#FEFCE8,stroke:#CA8A04,color:#28253D,stroke-dasharray:4 3
+
+    att["Floor attendant<br/>(cloudstack-agent on host 1)"]
+    ho["Head office<br/>(management server)"]
+    n5["No new connection: the head<br/>office writes its instructions<br/>to the attendant's own line"]
+    ho -.- n5
+    att <==>|"check-ins go up,<br/>instructions come down"| ho
+
+    class att floor
+    class ho office
+    class n5 note
+    linkStyle 0 stroke:#CA8A04,stroke-width:1.5px,stroke-dasharray:3 3

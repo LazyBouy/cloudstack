@@ -1,0 +1,59 @@
+%%{init: {"flowchart": {"wrappingWidth": 340}}}%%
+flowchart TB
+    %% Palette shared by every picture of post 02 (head office, staff-only and site colours as in 01-hotel)
+    classDef office fill:#FDF4FF,stroke:#E879F9,color:#28253D
+    classDef back fill:#F0FDFA,stroke:#2DD4BF,color:#28253D
+    classDef site fill:#FFF7ED,stroke:#FB923C,color:#28253D
+    classDef floor fill:#ECFEFF,stroke:#22D3EE,color:#28253D
+    classDef staff fill:#F0FDF4,stroke:#4ADE80,color:#28253D
+    classDef store fill:#F5F3FF,stroke:#A78BFA,color:#28253D
+    classDef building fill:#FEF2F2,stroke:#F87171,color:#28253D
+    classDef wing fill:#F8FAFC,stroke:#64748B,color:#28253D
+    classDef city fill:#FFFFFF,stroke:#94A3B8,color:#28253D
+    classDef note fill:#FEFCE8,stroke:#CA8A04,color:#28253D,stroke-dasharray:4 3
+
+    subgraph m2["Machine 2: a floor (KVM host)"]
+        att["Floor attendant<br/>(cloudstack-agent)"]
+        mach["Floor machinery<br/>(libvirt and KVM)"]
+        subgraph rooms["Rooms on this floor (VMs)"]
+            vm["Room<br/>(a user's VM)"]
+            vr["Switchboard<br/>(virtual router)"]
+            ssvm["Porter<br/>(SSVM)"]
+            cpvm["Remote-control window<br/>(CPVM)"]
+        end
+    end
+
+    subgraph m1["Machine 1: the head office's machine"]
+        ho["Head office<br/>(management server)<br/>front desk :8080<br/>staff line :8250"]
+        ledger[("Ledger<br/>(MySQL)")]
+        nfs[("Warehouse and storage room<br/>(NFS shares)")]
+    end
+
+    you(["You, or a user of your cloud<br/>(browser or cmk)"])
+
+    ho -.->|":3306"| ledger
+    mach -.->|"disks, room styles"| nfs
+    ssvm -.->|"room styles,<br/>snapshots"| nfs
+    %% SSH is written att <-.-> ho with its end marker hidden (linkStyle 3): the layout then keeps
+    %% the floor above the head office, and the only arrowhead drawn points at the attendant.
+    att <-.->|"SSH :22, setup<br/>and repair only"| ho
+    you -->|"API and web UI :8080"| ho
+    att -->|"dials :8250 (TLS);<br/>instructions come back"| ho
+    ssvm -->|":8250"| ho
+    cpvm -->|":8250"| ho
+    you -->|"a VM's screen :8080"| cpvm
+    cpvm -->|"VNC :5900–6100"| mach
+    att -->|"libvirt"| mach
+    att -->|"intercom: SSH :3922<br/>(link-local)"| vr
+    vm -->|"DHCP, gateway"| vr
+
+    class ho office
+    class ledger back
+    class nfs store
+    class att,mach floor
+    class vr,ssvm,cpvm staff
+    class m1 office
+    class m2 floor
+    class rooms city
+    linkStyle 0,1,2 stroke-dasharray:8 6,stroke-width:2px
+    linkStyle 3 stroke-dasharray:2 4,marker-end:none

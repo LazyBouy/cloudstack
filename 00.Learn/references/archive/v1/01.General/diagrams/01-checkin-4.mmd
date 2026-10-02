@@ -1,0 +1,36 @@
+%%{init: {"flowchart": {"wrappingWidth": 340}}}%%
+flowchart TB
+    %% Palette shared with post 02 (head office, staff-only and site colours as in 01-hotel)
+    classDef office fill:#FDF4FF,stroke:#E879F9,color:#28253D
+    classDef back fill:#F0FDFA,stroke:#2DD4BF,color:#28253D
+    classDef site fill:#FFF7ED,stroke:#FB923C,color:#28253D
+    classDef floor fill:#ECFEFF,stroke:#22D3EE,color:#28253D
+    classDef staff fill:#F0FDF4,stroke:#4ADE80,color:#28253D
+    classDef store fill:#F5F3FF,stroke:#A78BFA,color:#28253D
+    classDef note fill:#FEFCE8,stroke:#CA8A04,color:#28253D,stroke-dasharray:4 3
+
+    guest(["A guest<br/>(a user of your cloud)"])
+    subgraph ho["Head office (management server)"]
+        desk["Front desk<br/>(API)"]
+        board["Work-order board<br/>(async jobs)"]
+        managers["Managers who decide<br/>(orchestration)"]
+    end
+    subgraph fl["Floor (KVM host)"]
+        att["Floor attendant<br/>(agent)"]
+        room["Room<br/>(the new VM)"]
+    end
+    n1["The attendant builds the room"]
+    guest -->|"deployVirtualMachine:<br/>zone, service offering, template"| desk
+    guest <-.->|"ticket: a job ID<br/>and the new VM's ID"| desk
+    desk -->|"work order"| board
+    board -->|"job"| managers
+    managers <==>|"staff line, port 8250:<br/>opened by the attendant,<br/>instructions come back"| att
+    att -->|"builds"| room
+    room -.- n1
+
+    class ho,desk,board,managers office
+    class fl,att floor
+    class n1 note
+    linkStyle 1 stroke-dasharray:2 4,marker-end:none
+    linkStyle 4 stroke-width:3px
+    linkStyle 6 stroke:#CA8A04,stroke-width:1.5px,stroke-dasharray:3 3

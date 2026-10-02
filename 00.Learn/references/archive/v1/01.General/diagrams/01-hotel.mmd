@@ -1,0 +1,42 @@
+flowchart TB
+    guest(["A guest<br/>(a user of your cloud)"])
+    kiosk["Lobby kiosk<br/>(web UI)"]
+    phone["Phone line<br/>(CloudMonkey, cmk)"]
+    subgraph ho["Head office (management server): one program"]
+        desk["Front desk<br/>(API)"]
+        board["Work-order board<br/>(async jobs)"]
+        managers["Managers who decide<br/>(orchestration)"]
+        registry["Guest registry<br/>(domains, accounts, users)"]
+    end
+    subgraph back["Staff only"]
+        ledger[("Ledger<br/>(MySQL or MariaDB)")]
+        clocks["Synchronized clocks<br/>(NTP)"]
+        billing["Billing office<br/>(usage server, optional)"]
+    end
+    subgraph site["Hotel site (zone)"]
+        subgraph floor["Floor (KVM host)"]
+            attendant["Floor attendant<br/>(agent)"]
+            rooms["Guest rooms<br/>(your users' VMs)"]
+            staffrooms["Staff rooms<br/>(system VMs)"]
+        end
+        primary[("Storage room<br/>(primary storage)")]
+        warehouse[("Warehouse<br/>(secondary storage)")]
+    end
+    guest -->|"clicks"| kiosk
+    guest -->|"types commands"| phone
+    kiosk -->|"requests"| desk
+    phone -->|"requests"| desk
+    guest <-.->|"key card"| desk
+    managers <-->|"attendant phones in<br/>(port 8250);<br/>instructions come back"| attendant
+    attendant -->|"builds"| rooms
+    attendant -->|"builds"| staffrooms
+    managers -.->|"records"| ledger
+    managers -.->|"time"| clocks
+    billing -.->|"records"| ledger
+    rooms -.->|"disks"| primary
+    staffrooms -.->|"room styles, snapshots"| warehouse
+    desk -->|"work orders"| board
+    board -->|"jobs"| managers
+    desk -->|"checks key cards"| registry
+    linkStyle 4 stroke-dasharray:2 4
+    linkStyle 8,9,10,11,12 stroke-dasharray:8 6,stroke-width:2px

@@ -1,0 +1,26 @@
+%%{init: {"flowchart": {"wrappingWidth": 340}}}%%
+flowchart TB
+    %% Palette shared with post 02 (head office, staff-only and site colours as in 01-hotel)
+    classDef office fill:#FDF4FF,stroke:#E879F9,color:#28253D
+    classDef back fill:#F0FDFA,stroke:#2DD4BF,color:#28253D
+    classDef site fill:#FFF7ED,stroke:#FB923C,color:#28253D
+    classDef floor fill:#ECFEFF,stroke:#22D3EE,color:#28253D
+    classDef staff fill:#F0FDF4,stroke:#4ADE80,color:#28253D
+    classDef store fill:#F5F3FF,stroke:#A78BFA,color:#28253D
+    classDef note fill:#FEFCE8,stroke:#CA8A04,color:#28253D,stroke-dasharray:4 3
+
+    subgraph fl["A floor: one physical server (a host)"]
+        mach["Floor machinery<br/>(the hypervisor: KVM)"]
+        r1["Room<br/>(a VM running Ubuntu)"]
+        r2["Room<br/>(a VM running Windows)"]
+        r3["Room<br/>(a VM running Ubuntu)"]
+    end
+    n1["Each room has its own operating<br/>system, and its own walls"]
+    mach -->|"runs"| r1
+    mach -->|"runs"| r2
+    mach -->|"runs"| r3
+    r3 -.- n1
+
+    class fl,mach floor
+    class n1 note
+    linkStyle 3 stroke:#CA8A04,stroke-width:1.5px,stroke-dasharray:3 3

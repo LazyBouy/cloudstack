@@ -1,0 +1,44 @@
+%%{init: {"flowchart": {"wrappingWidth": 340}}}%%
+flowchart LR
+    %% Palette shared by every picture of post 02 (head office, staff-only and site colours as in 01-hotel)
+    classDef office fill:#FDF4FF,stroke:#E879F9,color:#28253D
+    classDef back fill:#F0FDFA,stroke:#2DD4BF,color:#28253D
+    classDef site fill:#FFF7ED,stroke:#FB923C,color:#28253D
+    classDef floor fill:#ECFEFF,stroke:#22D3EE,color:#28253D
+    classDef staff fill:#F0FDF4,stroke:#4ADE80,color:#28253D
+    classDef store fill:#F5F3FF,stroke:#A78BFA,color:#28253D
+    classDef building fill:#FEF2F2,stroke:#F87171,color:#28253D
+    classDef wing fill:#F8FAFC,stroke:#64748B,color:#28253D
+    classDef city fill:#FFFFFF,stroke:#94A3B8,color:#28253D
+    classDef note fill:#FEFCE8,stroke:#CA8A04,color:#28253D,stroke-dasharray:4 3
+
+    subgraph m2["A floor (KVM host)"]
+        att["Floor attendant<br/>(cloudstack-agent)"]
+        rooms["Rooms and staff rooms<br/>(VMs and system VMs)"]
+    end
+
+    subgraph m1["The head office's machine"]
+        ho["Head office<br/>(management server)"]
+        ledger[("Ledger<br/>(MySQL)")]
+    end
+
+    store[("Storage rooms and warehouse<br/>(primary and secondary storage)")]
+    n1["Part 1: where each box lives,<br/>and how a site is divided"]
+    n2["Part 2: who calls whom,<br/>and why the floor dials"]
+
+    att -->|"staff line, port 8250"| ho
+    ho -.->|"records"| ledger
+    rooms -.->|"disks, room styles"| store
+    n2 -.- att
+    n1 -.- store
+
+    class ho office
+    class ledger back
+    class store store
+    class att floor
+    class m1 office
+    class m2 floor
+    class n1,n2 note
+    linkStyle 0 stroke-width:3px
+    linkStyle 1,2 stroke-dasharray:8 6,stroke-width:2px
+    linkStyle 3,4 stroke:#CA8A04,stroke-width:1.5px,stroke-dasharray:3 3

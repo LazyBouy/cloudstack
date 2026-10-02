@@ -1,0 +1,10 @@
+# The article pipeline's working files: what the agents hand to each other and to
+# the main session (research dossiers, designs, audit findings and resolutions).
+# Local only; just the finished posts are committed.
+/articles/
+
+# Local notes handed between agents, one numbered file each; never committed
+/handoff/
+
+# The archived first attempt's working files (dossiers, designs, audits): local only, like articles/
+/archive/*/working/

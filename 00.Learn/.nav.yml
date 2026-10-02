@@ -1,0 +1,5 @@
+# Navigation rules for the whole blog (inherited by every sub-folder).
+# Sort pages and folders together by their number; by default MkDocs would
+# list a folder after all the pages beside it.
+sort:
+  sections: mixed
