@@ -1,0 +1,1969 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How Apache CloudStack works and why it is built that way, explained simply, with the code as the source of truth.">
+      
+      
+      
+        <link rel="canonical" href="https://lazybouy.github.io/cloudstack/01.General/99.Check-Yourself-Answers/03.What-A-Cloud-Adds/">
+      
+      
+        <link rel="prev" href="../02.Hypervisors/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Answers: What Does a Cloud Add to Virtual Machines? - CloudStack from the Ground Up</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#answers-what-does-a-cloud-add-to-virtual-machines" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="CloudStack from the Ground Up" class="md-header__button md-logo" aria-label="CloudStack from the Ground Up" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CloudStack from the Ground Up
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Answers: What Does a Cloud Add to Virtual Machines?
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/LazyBouy/cloudstack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    LazyBouy/cloudstack
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="CloudStack from the Ground Up" class="md-nav__button md-logo" aria-label="CloudStack from the Ground Up" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    CloudStack from the Ground Up
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LazyBouy/cloudstack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    LazyBouy/cloudstack
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CloudStack from the Ground Up
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · General
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    01 · General
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01.Virtual-Machines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Is a Virtual Machine, and What Runs It?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02.Hypervisors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does a Hypervisor Work?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03.What-A-Cloud-Adds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Does a Cloud Add to Virtual Machines?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04.API-And-Database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Do You Ask CloudStack for Something? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05.Accounts-And-Roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Who May Ask the Cloud for What? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06.Talking-To-Hosts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does CloudStack Talk to a Host? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07.Where-Disks-Live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Where Does a VM's Disk Live? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08.Clusters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Which Hosts Can a VM Move Between? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09.Zones-And-Pods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does CloudStack Map a Data Centre? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10.Templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Where Do New VMs Come From? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11.System-VMs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why Does CloudStack Run VMs of Its Own? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12.Guest-Networks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does a VM Get onto a Network? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13.Journey-Of-A-VM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Happens When Someone Asks for a VM? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14.Lab-Simulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Can You Try CloudStack Without Real Servers? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15.Lab-Preparing-A-Machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Does One Machine Need to Run CloudStack? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../16.Lab-Building-The-Cloud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does One Machine Become a Working Cloud? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../17.Exercises/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercises: The Big Picture (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_19" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Check-yourself answers
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_19" id="__nav_2_19_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_19_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_19">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Check-yourself answers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01.Virtual-Machines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: What Is a Virtual Machine, and What Runs It?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02.Hypervisors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: How Does a Hypervisor Work?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: What Does a Cloud Add to Virtual Machines?
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: What Does a Cloud Add to Virtual Machines?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#1-five-kvm-hosts-and-vms-on-request-by-email-is-that-a-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Five KVM hosts and VMs on request by email: is that a cloud?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-self-service-and-a-shared-pool-take-the-admin-out-of-every-request-what-must-the-software-do-instead" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Self-service and a shared pool take the admin out of every request. What must the software do instead?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-clouds-only-management-server-crashes-at-3-am-what-happens-to-the-running-vms-and-what-cant-anyone-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The cloud's only management server crashes at 3 a.m. What happens to the running VMs, and what can't anyone do?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-what-is-a-tenant-and-can-a-physicist-stop-the-biology-vm-on-the-same-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. What is a tenant, and can a physicist stop the Biology VM on the same host?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-is-cloudstack-a-hypervisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Is CloudStack a hypervisor?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#each-hosts-libvirt-manages-that-hosts-vms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Each host's libvirt manages that host's VMs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nists-two-traits-and-what-a-cloud-physically-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NIST's two traits, and what a cloud physically is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudstack-manages-vms-and-companies-run-it-for-themselves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CloudStack manages VMs, and companies run it for themselves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-tenant-is-a-customer-or-a-department-sharing-hosts-is-the-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A tenant is a customer or a department; sharing hosts is the default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-management-server-is-one-service-on-a-machine-of-its-own-or-a-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The management server is one service, on a machine of its own or a VM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordinary-users-may-create-and-delete-vms-by-themselves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordinary users may create and delete VMs by themselves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-request-names-a-size-a-place-and-what-to-start-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A request names a size, a place and what to start from
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#each-tenants-limit-20-vms-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Each tenant's limit: 20 VMs by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-management-server-picks-a-host-with-enough-cpu-and-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The management server picks a host with enough CPU and memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#only-the-operators-may-name-a-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Only the operators may name a host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decide-record-instruct-in-that-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decide, record, instruct, in that order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-a-kvm-host-the-instruction-ends-at-libvirt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On a KVM host, the instruction ends at libvirt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-request-on-another-tenants-vm-is-refused" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A request on another tenant's VM is refused
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xapi-and-vcenter-the-other-families-own-management-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XAPI and vCenter: the other families' own management software
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-vms-keep-running-when-the-management-server-stops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The VMs keep running when the management server stops
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#1-five-kvm-hosts-and-vms-on-request-by-email-is-that-a-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Five KVM hosts and VMs on request by email: is that a cloud?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-self-service-and-a-shared-pool-take-the-admin-out-of-every-request-what-must-the-software-do-instead" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Self-service and a shared pool take the admin out of every request. What must the software do instead?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-clouds-only-management-server-crashes-at-3-am-what-happens-to-the-running-vms-and-what-cant-anyone-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The cloud's only management server crashes at 3 a.m. What happens to the running VMs, and what can't anyone do?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-what-is-a-tenant-and-can-a-physicist-stop-the-biology-vm-on-the-same-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. What is a tenant, and can a physicist stop the Biology VM on the same host?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-is-cloudstack-a-hypervisor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Is CloudStack a hypervisor?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Evidence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#each-hosts-libvirt-manages-that-hosts-vms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Each host's libvirt manages that host's VMs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nists-two-traits-and-what-a-cloud-physically-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NIST's two traits, and what a cloud physically is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudstack-manages-vms-and-companies-run-it-for-themselves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CloudStack manages VMs, and companies run it for themselves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-tenant-is-a-customer-or-a-department-sharing-hosts-is-the-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A tenant is a customer or a department; sharing hosts is the default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-management-server-is-one-service-on-a-machine-of-its-own-or-a-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The management server is one service, on a machine of its own or a VM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ordinary-users-may-create-and-delete-vms-by-themselves" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ordinary users may create and delete VMs by themselves
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-request-names-a-size-a-place-and-what-to-start-from" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A request names a size, a place and what to start from
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#each-tenants-limit-20-vms-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Each tenant's limit: 20 VMs by default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-management-server-picks-a-host-with-enough-cpu-and-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The management server picks a host with enough CPU and memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#only-the-operators-may-name-a-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Only the operators may name a host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#decide-record-instruct-in-that-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decide, record, instruct, in that order
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#on-a-kvm-host-the-instruction-ends-at-libvirt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On a KVM host, the instruction ends at libvirt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-request-on-another-tenants-vm-is-refused" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A request on another tenant's VM is refused
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#xapi-and-vcenter-the-other-families-own-management-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XAPI and vCenter: the other families' own management software
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-vms-keep-running-when-the-management-server-stops" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The VMs keep running when the management server stops
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/LazyBouy/cloudstack/edit/learn/00.Learn/01.General/99.Check-Yourself-Answers/03.What-A-Cloud-Adds.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+    </a>
+  
+  
+
+
+<h1 id="answers-what-does-a-cloud-add-to-virtual-machines">Answers: What Does a Cloud Add to Virtual Machines?<a class="headerlink" href="#answers-what-does-a-cloud-add-to-virtual-machines" title="Permanent link">¶</a></h1>
+<p><a href="../../03.What-A-Cloud-Adds/">← Back to the post</a></p>
+<h2 id="1-five-kvm-hosts-and-vms-on-request-by-email-is-that-a-cloud">1. Five KVM hosts and VMs on request by email: is that a cloud?<a class="headerlink" href="#1-five-kvm-hosts-and-vms-on-request-by-email-is-that-a-cloud" title="Permanent link">¶</a></h2>
+<p>No. It's virtualisation, done by hand.</p>
+<p>KVM and libvirt do run VMs, but each host's libvirt manages that host's VMs and nothing else. It starts a VM where it's asked; it never chooses a host. Someone still has to read each email, pick a host, log in and ask.</p>
+<p>Two things are missing, and they're the two traits of NIST's definition the article followed:</p>
+<ul>
+<li>Self-service. A person sits between every request and every VM, so nothing happens at 2 a.m., and the queue grows with every new researcher.</li>
+<li>A shared pool, handed out automatically. The hosts are there, but nothing places each VM where there's room, keeps track of whose VM is where, or stops one group taking everything.</li>
+</ul>
+<p>What would add them is software above the hosts: something that takes each request itself, picks a host, keeps the records and enforces the rules. NIST's own footnote says a cloud is hardware plus that software. In CloudStack, it's the management server.</p>
+<h2 id="2-self-service-and-a-shared-pool-take-the-admin-out-of-every-request-what-must-the-software-do-instead">2. Self-service and a shared pool take the admin out of every request. What must the software do instead?<a class="headerlink" href="#2-self-service-and-a-shared-pool-take-the-admin-out-of-every-request-what-must-the-software-do-instead" title="Permanent link">¶</a></h2>
+<p>Everything the admin used to do, with no person in the loop, at any hour:</p>
+<ol>
+<li>Hold each tenant to its share: check, for every new VM, that its tenant hasn't reached its limit.</li>
+<li>Pick a host with room: one with enough spare CPU and memory for the size asked for. The person asking chooses only a place; only the operators may name a host.</li>
+<li>Keep the records: whose each VM is, and which host it's on.</li>
+<li>Tell the chosen host to start the VM. On a KVM host, the instruction ends at that host's libvirt, the same libvirt the admin used by hand.</li>
+<li>Refuse requests that touch another tenant's VMs.</li>
+</ol>
+<p>That list is the management server's job description. Steps 2 to 4 even come in that order in the code: it picks the host, writes it into the VM's record, and only then sends the instruction (see the Evidence below).</p>
+<h2 id="3-the-clouds-only-management-server-crashes-at-3-am-what-happens-to-the-running-vms-and-what-cant-anyone-do">3. The cloud's only management server crashes at 3 a.m. What happens to the running VMs, and what can't anyone do?<a class="headerlink" href="#3-the-clouds-only-management-server-crashes-at-3-am-what-happens-to-the-running-vms-and-what-cant-anyone-do" title="Permanent link">¶</a></h2>
+<p>The running VMs carry on. CloudStack's docs say so even for the worst case, every copy of the management server down: "All Guest Instances will continue to work."</p>
+<p>Why? Because the management server isn't in the VMs' path. Each VM runs under its own host's hypervisor, which doesn't need the management server to keep it going. On a KVM host, CloudStack's own program there notices the connection has dropped, and simply keeps trying to reconnect. A VM's own work, such as serving a web page, never went through the management server in the first place.</p>
+<p>What stops is every request to the cloud. Nobody can create a VM, and the web interface doesn't answer. And if a host fails meanwhile, the automatic restarts that CloudStack can do for that host's VMs don't happen while it's down either.</p>
+<p>In the kitchen picture: HQ has closed for the night. The kitchens keep cooking the brands already open, but no new brand can launch until morning.</p>
+<h2 id="4-what-is-a-tenant-and-can-a-physicist-stop-the-biology-vm-on-the-same-host">4. What is a tenant, and can a physicist stop the Biology VM on the same host?<a class="headerlink" href="#4-what-is-a-tenant-and-can-a-physicist-stop-the-biology-vm-on-the-same-host" title="Permanent link">¶</a></h2>
+<p>A tenant is one of the customers that share a cloud, kept apart from the others: usually a group, such as a company or a department of a large organisation. It isn't the same thing as a person: it owns the VMs, and its people each log in as members of it. And it needn't pay: at the university, Physics and Biology are tenants, and they're departments.</p>
+<p>The physicist can't stop the Biology VM. Sharing a host is normal (it's what makes the pool a pool), but sharing a host isn't sharing VMs. Two guards stand between the tenants' VMs here (their networks are kept apart too):</p>
+<ul>
+<li>On the host, the hypervisor keeps the two VMs apart, as it keeps every VM apart from its neighbours: strongly, though not absolutely.</li>
+<li>At the management server, a request that names a VM is checked against that VM's owner. Physics doesn't own the Biology VM, so the request is refused.</li>
+</ul>
+<p>Why must tenants be kept apart at all? Because the pool is shared. Without the checks, any tenant could touch, or take, what's another's, and no tenant could trust the cloud. Tenants who need more than that can have hosts reserved for them alone, but that's an option the operators switch on, not the rule.</p>
+<h2 id="5-is-cloudstack-a-hypervisor">5. Is CloudStack a hypervisor?<a class="headerlink" href="#5-is-cloudstack-a-hypervisor" title="Permanent link">¶</a></h2>
+<p>No. CloudStack commands hypervisors; the hypervisor on each host runs the VMs.</p>
+<p>Its management server decides where each VM goes and sends the instruction. What happens next depends on the family:</p>
+<ul>
+<li>On a KVM host, a small CloudStack program on the host hands the instruction to the host's libvirt, which starts the VM.</li>
+<li>For the XenServer family (XenServer and XCP-ng), CloudStack talks to XAPI, the family's own management service.</li>
+<li>For VMware, CloudStack talks to vCenter, which manages the ESXi hosts.</li>
+</ul>
+<p>Even in the smallest set-up, where one machine runs the management server and is also a KVM host, the management server stays a program of its own, separate from the hypervisor. And the VMs outlive the management server's outages: if it were their hypervisor, stopping it would stop them.</p>
+<h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">¶</a></h2>
+<p>The post states these facts in plain words. Here are the lines of CloudStack's code, and the passages of the docs, that back them. Code is quoted at the commit the post is written against.</p>
+<h3 id="each-hosts-libvirt-manages-that-hosts-vms">Each host's libvirt manages that host's VMs<a class="headerlink" href="#each-hosts-libvirt-manages-that-hosts-vms" title="Permanent link">¶</a></h3>
+<p>CloudStack's program on a KVM host connects to libvirt with a local address (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/LibvirtConnection.java#L115">LibvirtConnection.java, line 115</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/LibvirtConnection.java, line 115</span>
+<span class="k">return</span><span class="w"> </span><span class="s">"qemu:///system"</span><span class="p">;</span>
+</code></pre></div>
+<p>libvirt's <a href="https://libvirt.org/uri.html">Connection URIs</a> page explains it: "qemu:///system connects to a system mode daemon", which "will handle qemu instances on behalf of all users of the machine (among other things)". An address with no host name in it is local: "Either the transport or the hostname must be given in order to distinguish this from a local URI." One libvirt, one machine.</p>
+<h3 id="nists-two-traits-and-what-a-cloud-physically-is">NIST's two traits, and what a cloud physically is<a class="headerlink" href="#nists-two-traits-and-what-a-cloud-physically-is" title="Permanent link">¶</a></h3>
+<p>NIST SP 800-145 (<a href="https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-145.pdf">final text</a>), section 2, on self-service:</p>
+<blockquote>
+<p>On-demand self-service. A consumer can unilaterally provision computing capabilities, such as server time and network storage, as needed automatically without requiring human interaction with each service provider.</p>
+</blockquote>
+<p>On the shared pool:</p>
+<blockquote>
+<p>Resource pooling. The provider's computing resources are pooled to serve multiple consumers using a multi-tenant model, with different physical and virtual resources dynamically assigned and reassigned according to consumer demand. There is a sense of location independence in that the customer generally has no control or knowledge over the exact location of the provided resources but may be able to specify location at a higher level of abstraction (e.g., country, state, or datacenter).</p>
+</blockquote>
+<p>Its footnote 2, on hardware plus software:</p>
+<blockquote>
+<p>A cloud infrastructure is the collection of hardware and software that enables the five essential characteristics of cloud computing. The cloud infrastructure can be viewed as containing both a physical layer and an abstraction layer. The physical layer consists of the hardware resources that are necessary to support the cloud services being provided, and typically includes server, storage and network components. The abstraction layer consists of the software deployed across the physical layer, which manifests the essential cloud characteristics. Conceptually the abstraction layer sits above the physical layer.</p>
+</blockquote>
+<p>And its example of the many consumers inside one organisation, from the same section: "The cloud infrastructure is provisioned for exclusive use by a single organization comprising multiple consumers (e.g., business units)."</p>
+<h3 id="cloudstack-manages-vms-and-companies-run-it-for-themselves">CloudStack manages VMs, and companies run it for themselves<a class="headerlink" href="#cloudstack-manages-vms-and-companies-run-it-for-themselves" title="Permanent link">¶</a></h3>
+<p>CloudStack's README (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/README.md?plain=1#L57-L62">README.md, lines 57–62</a>):</p>
+<div class="highlight"><pre><span></span><code># cloudstack: README.md, lines 57–62
+Apache CloudStack is open source software designed to deploy and manage large
+networks of virtual machines, as a highly available, highly scalable
+Infrastructure as a Service (IaaS) cloud computing platform. CloudStack is used
+by a number of service providers to offer public cloud services, and by many
+companies to provide an on-premises (private) cloud offering, or as part of a
+hybrid cloud solution.
+</code></pre></div>
+<p>It's licensed under the Apache License 2.0 (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/LICENSE#L4-L5">LICENSE, lines 4–5</a>):</p>
+<div class="highlight"><pre><span></span><code># cloudstack: LICENSE, lines 4–5
+      Apache License
+Version 2.0, January 2004
+</code></pre></div>
+<p>And the <a href="https://cloudstack.apache.org/about/">About page</a> says: "Apache CloudStack is a top-level project of the Apache Software Foundation (ASF)."</p>
+<h3 id="a-tenant-is-a-customer-or-a-department-sharing-hosts-is-the-default">A tenant is a customer or a department; sharing hosts is the default<a class="headerlink" href="#a-tenant-is-a-customer-or-a-department-sharing-hosts-is-the-default" title="Permanent link">¶</a></h3>
+<p>CloudStack's docs (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/adminguide/accounts.html#accounts">Accounts</a>) describe CloudStack's record for a tenant, which it calls an account: "An Account typically represents a customer of the service provider or a department in a large organization."</p>
+<p>Hosts for one tenant alone are an option (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/adminguide/accounts.html#dedicating-resources-to-accounts-and-domains">Dedicating Resources to Accounts and Domains</a>): "The root administrator can dedicate resources to a specific domain or Account that needs private infrastructure for additional security or performance guarantees." The root administrators are the cloud's operators. One of the kinds of dedication reads "A host will not be shared across multiple Accounts", which only needs saying because, without it, hosts are shared.</p>
+<h3 id="the-management-server-is-one-service-on-a-machine-of-its-own-or-a-vm">The management server is one service, on a machine of its own or a VM<a class="headerlink" href="#the-management-server-is-one-service-on-a-machine-of-its-own-or-a-vm" title="Permanent link">¶</a></h3>
+<p>The service's name, in its unit file (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/packaging/systemd/cloudstack-management.service#L26">cloudstack-management.service, line 26</a>):</p>
+<div class="highlight"><pre><span></span><code># cloudstack: packaging/systemd/cloudstack-management.service, line 26
+Description=CloudStack Management Server
+</code></pre></div>
+<p>Where it runs (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/conceptsandterminology/concepts.html#management-server-overview">Management Server Overview</a>): "The management server typically runs on a dedicated machine or as a virtual machine." And the smallest set-up (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/conceptsandterminology/concepts.html#deployment-architecture-overview">Deployment Architecture Overview</a>): "In its smallest deployment, a single machine can act as both the Management Server and the hypervisor host (using the KVM hypervisor)."</p>
+<p>Several copies (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/conceptsandterminology/concepts.html#high-availability">High Availability</a>): "The Management Server itself may be deployed in a multi-node installation where the servers are load balanced."</p>
+<h3 id="ordinary-users-may-create-and-delete-vms-by-themselves">Ordinary users may create and delete VMs by themselves<a class="headerlink" href="#ordinary-users-may-create-and-delete-vms-by-themselves" title="Permanent link">¶</a></h3>
+<p>A fresh install's default rules give the role called "User" (role 4) these two commands. (The row's description, "Default Root Admin role", is a slip in the code, not its meaning.) The role (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/schema/src/main/resources/META-INF/db/schema-481to490.sql#L473">schema-481to490.sql, line 473</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- cloudstack: engine/schema/src/main/resources/META-INF/db/schema-481to490.sql, line 473</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="o">`</span><span class="n">cloud</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">roles</span><span class="o">`</span><span class="w"> </span><span class="p">(</span><span class="o">`</span><span class="n">id</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">uuid</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">name</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">role_type</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">description</span><span class="o">`</span><span class="p">)</span><span class="w"> </span><span class="k">values</span><span class="w"> </span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">UUID</span><span class="p">(),</span><span class="w"> </span><span class="s1">'User'</span><span class="p">,</span><span class="w"> </span><span class="s1">'User'</span><span class="p">,</span><span class="w"> </span><span class="s1">'Default Root Admin role'</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">DUPLICATE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">UPDATE</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">;</span>
+</code></pre></div>
+<p>Creating a VM (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/schema/src/main/resources/META-INF/db/create-default-role-api-mappings.sql#L734">create-default-role-api-mappings.sql, line 734</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- cloudstack: engine/schema/src/main/resources/META-INF/db/create-default-role-api-mappings.sql, line 734</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="o">`</span><span class="n">cloud</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">role_permissions</span><span class="o">`</span><span class="w"> </span><span class="p">(</span><span class="o">`</span><span class="n">uuid</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">role_id</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="k">rule</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">permission</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">sort_order</span><span class="o">`</span><span class="p">)</span><span class="w"> </span><span class="k">values</span><span class="w"> </span><span class="p">(</span><span class="n">UUID</span><span class="p">(),</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="s1">'deployVirtualMachine'</span><span class="p">,</span><span class="w"> </span><span class="s1">'ALLOW'</span><span class="p">,</span><span class="w"> </span><span class="mi">93</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">DUPLICATE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">UPDATE</span><span class="w"> </span><span class="k">rule</span><span class="o">=</span><span class="k">rule</span><span class="p">;</span>
+</code></pre></div>
+<p>And deleting one (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/schema/src/main/resources/META-INF/db/create-default-role-api-mappings.sql#L736">create-default-role-api-mappings.sql, line 736</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- cloudstack: engine/schema/src/main/resources/META-INF/db/create-default-role-api-mappings.sql, line 736</span>
+<span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="o">`</span><span class="n">cloud</span><span class="o">`</span><span class="p">.</span><span class="o">`</span><span class="n">role_permissions</span><span class="o">`</span><span class="w"> </span><span class="p">(</span><span class="o">`</span><span class="n">uuid</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">role_id</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="k">rule</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">permission</span><span class="o">`</span><span class="p">,</span><span class="w"> </span><span class="o">`</span><span class="n">sort_order</span><span class="o">`</span><span class="p">)</span><span class="w"> </span><span class="k">values</span><span class="w"> </span><span class="p">(</span><span class="n">UUID</span><span class="p">(),</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="s1">'destroyVirtualMachine'</span><span class="p">,</span><span class="w"> </span><span class="s1">'ALLOW'</span><span class="p">,</span><span class="w"> </span><span class="mi">95</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">DUPLICATE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">UPDATE</span><span class="w"> </span><span class="k">rule</span><span class="o">=</span><span class="k">rule</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="a-request-names-a-size-a-place-and-what-to-start-from">A request names a size, a place and what to start from<a class="headerlink" href="#a-request-names-a-size-a-place-and-what-to-start-from" title="Permanent link">¶</a></h3>
+<p>A size is required (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/api/src/main/java/org/apache/cloudstack/api/command/user/vm/DeployVMCmd.java#L55-L57">DeployVMCmd.java, lines 55–57</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: api/src/main/java/org/apache/cloudstack/api/command/user/vm/DeployVMCmd.java, lines 55–57</span>
+<span class="nd">@ACL</span>
+<span class="nd">@Parameter</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApiConstants</span><span class="p">.</span><span class="na">SERVICE_OFFERING_ID</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CommandType</span><span class="p">.</span><span class="na">UUID</span><span class="p">,</span><span class="w"> </span><span class="n">entityType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ServiceOfferingResponse</span><span class="p">.</span><span class="na">class</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"The ID of the Service offering for the Instance"</span><span class="p">)</span>
+<span class="kd">private</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">serviceOfferingId</span><span class="p">;</span>
+</code></pre></div>
+<p>So is a place (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/api/src/main/java/org/apache/cloudstack/api/command/user/vm/BaseDeployVMCmd.java#L79">BaseDeployVMCmd.java, line 79</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: api/src/main/java/org/apache/cloudstack/api/command/user/vm/BaseDeployVMCmd.java, line 79</span>
+<span class="nd">@Parameter</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ApiConstants</span><span class="p">.</span><span class="na">ZONE_ID</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">CommandType</span><span class="p">.</span><span class="na">UUID</span><span class="p">,</span><span class="w"> </span><span class="n">entityType</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZoneResponse</span><span class="p">.</span><span class="na">class</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"availability zone for the virtual machine"</span><span class="p">)</span>
+</code></pre></div>
+<p>And, unless the VM starts blank, exactly one starting point, such as an operating system image (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/api/src/main/java/org/apache/cloudstack/api/command/user/vm/DeployVMCmd.java#L241-L244">DeployVMCmd.java, lines 241–244</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: api/src/main/java/org/apache/cloudstack/api/command/user/vm/DeployVMCmd.java, lines 241–244</span>
+<span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">create</span><span class="p">()</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">ResourceAllocationException</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">isBlankInstance</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">Stream</span><span class="p">.</span><span class="na">of</span><span class="p">(</span><span class="n">templateId</span><span class="p">,</span><span class="w"> </span><span class="n">snapshotId</span><span class="p">,</span><span class="w"> </span><span class="n">volumeId</span><span class="p">).</span><span class="na">filter</span><span class="p">(</span><span class="n">Objects</span><span class="p">::</span><span class="n">nonNull</span><span class="p">).</span><span class="na">count</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CloudRuntimeException</span><span class="p">(</span><span class="s">"Please provide only one of the following parameters - template ID, volume ID or snapshot ID"</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>The words in these lines (offering, zone, template) are taught later in the module.</p>
+<h3 id="each-tenants-limit-20-vms-by-default">Each tenant's limit: 20 VMs by default<a class="headerlink" href="#each-tenants-limit-20-vms-by-default" title="Permanent link">¶</a></h3>
+<p>The default (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/configuration/Config.java#L1171-L1178">Config.java, lines 1171–1178</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/configuration/Config.java, lines 1171–1178</span>
+<span class="n">DefaultMaxAccountUserVms</span><span class="p">(</span>
+<span class="w">        </span><span class="s">"Account Defaults"</span><span class="p">,</span>
+<span class="w">        </span><span class="n">ManagementServer</span><span class="p">.</span><span class="na">class</span><span class="p">,</span>
+<span class="w">        </span><span class="n">Long</span><span class="p">.</span><span class="na">class</span><span class="p">,</span>
+<span class="w">        </span><span class="s">"max.account.user.vms"</span><span class="p">,</span>
+<span class="w">        </span><span class="s">"20"</span><span class="p">,</span>
+<span class="w">        </span><span class="s">"The default maximum number of user VMs that can be deployed for an account"</span><span class="p">,</span>
+<span class="w">        </span><span class="kc">null</span><span class="p">),</span>
+</code></pre></div>
+<p>Creating a VM reserves one against the owner's limit (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/vm/UserVmManagerImpl.java#L4483">UserVmManagerImpl.java, line 4483</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/vm/UserVmManagerImpl.java, line 4483</span>
+<span class="k">try</span><span class="w"> </span><span class="p">(</span><span class="n">CheckedReservation</span><span class="w"> </span><span class="n">vmReservation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">CheckedReservation</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceType</span><span class="p">.</span><span class="na">user_vm</span><span class="p">,</span><span class="w"> </span><span class="n">resourceLimitHostTags</span><span class="p">,</span><span class="w"> </span><span class="mi">1l</span><span class="p">,</span><span class="w"> </span><span class="n">reservationDao</span><span class="p">,</span><span class="w"> </span><span class="n">resourceLimitService</span><span class="p">);</span>
+</code></pre></div>
+<p>The operators' own accounts aren't limited, which is why the limit is a tenant's, not the operators' (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/resourcelimit/ResourceLimitManagerImpl.java#L654-L657">ResourceLimitManagerImpl.java, lines 654–657</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/resourcelimit/ResourceLimitManagerImpl.java, lines 654–657</span>
+<span class="c1">// Don't place any limits on system or root admin accounts</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_accountMgr</span><span class="p">.</span><span class="na">isRootAdmin</span><span class="p">(</span><span class="n">account</span><span class="p">.</span><span class="na">getId</span><span class="p">())</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="p">(</span><span class="n">considerSystemAccount</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">Account</span><span class="p">.</span><span class="na">ACCOUNT_ID_SYSTEM</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">account</span><span class="p">.</span><span class="na">getId</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="the-management-server-picks-a-host-with-enough-cpu-and-memory">The management server picks a host with enough CPU and memory<a class="headerlink" href="#the-management-server-picks-a-host-with-enough-cpu-and-memory" title="Permanent link">¶</a></h3>
+<p>When a VM starts, the management server plans where it goes (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java#L1473-L1476">VirtualMachineManagerImpl.java, lines 1473–1476</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java, lines 1473–1476</span>
+<span class="n">DeployDestination</span><span class="w"> </span><span class="n">dest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">dest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">_dpMgr</span><span class="p">.</span><span class="na">planDeployment</span><span class="p">(</span><span class="n">vmProfile</span><span class="p">,</span><span class="w"> </span><span class="n">plan</span><span class="p">,</span><span class="w"> </span><span class="n">avoids</span><span class="p">,</span><span class="w"> </span><span class="n">planner</span><span class="p">);</span>
+<span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="kd">final</span><span class="w"> </span><span class="n">AffinityConflictException</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<p>A host is kept only if it has the CPU and memory the size asks for (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/capacity/CapacityManagerImpl.java#L1069-L1077">CapacityManagerImpl.java, lines 1069–1077</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/capacity/CapacityManagerImpl.java, lines 1069–1077</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">cpu_requested</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offering</span><span class="p">.</span><span class="na">getCpu</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">offering</span><span class="p">.</span><span class="na">getSpeed</span><span class="p">();</span>
+<span class="kt">long</span><span class="w"> </span><span class="n">ram_requested</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">offering</span><span class="p">.</span><span class="na">getRamSize</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024L</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024L</span><span class="p">;</span>
+<span class="n">Pair</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">clusterDetails</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getClusterValues</span><span class="p">(</span><span class="n">host</span><span class="p">.</span><span class="na">getClusterId</span><span class="p">());</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">cpuOvercommitRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Float</span><span class="p">.</span><span class="na">parseFloat</span><span class="p">(</span><span class="n">clusterDetails</span><span class="p">.</span><span class="na">first</span><span class="p">());</span>
+<span class="kt">float</span><span class="w"> </span><span class="n">memoryOvercommitRatio</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Float</span><span class="p">.</span><span class="na">parseFloat</span><span class="p">(</span><span class="n">clusterDetails</span><span class="p">.</span><span class="na">second</span><span class="p">());</span>
+
+<span class="kt">boolean</span><span class="w"> </span><span class="n">hostHasCpuCapability</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">checkIfHostHasCpuCapability</span><span class="p">(</span><span class="n">host</span><span class="p">,</span><span class="w"> </span><span class="n">offering</span><span class="p">.</span><span class="na">getCpu</span><span class="p">(),</span><span class="w"> </span><span class="n">offering</span><span class="p">.</span><span class="na">getSpeed</span><span class="p">());</span>
+<span class="kt">boolean</span><span class="w"> </span><span class="n">hostHasCapacity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">checkIfHostHasCapacity</span><span class="p">(</span><span class="n">host</span><span class="p">,</span><span class="w"> </span><span class="n">cpu_requested</span><span class="p">,</span><span class="w"> </span><span class="n">ram_requested</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="n">cpuOvercommitRatio</span><span class="p">,</span><span class="w"> </span><span class="n">memoryOvercommitRatio</span><span class="p">,</span>
+<span class="w">        </span><span class="n">considerReservedCapacity</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="only-the-operators-may-name-a-host">Only the operators may name a host<a class="headerlink" href="#only-the-operators-may-name-a-host" title="Permanent link">¶</a></h3>
+<p>If anyone but a root admin, one of the cloud's operators, names a host when creating or starting a VM, the request is refused (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/vm/UserVmManagerImpl.java#L6267-L6273">UserVmManagerImpl.java, lines 6267–6273</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/vm/UserVmManagerImpl.java, lines 6267–6273</span>
+<span class="kd">private</span><span class="w"> </span><span class="n">HostVO</span><span class="w"> </span><span class="nf">getDestinationHost</span><span class="p">(</span><span class="n">Long</span><span class="w"> </span><span class="n">hostId</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">isRootAdmin</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">isExplicitHost</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">quickRestore</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">HostVO</span><span class="w"> </span><span class="n">destinationHost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">hostId</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">isExplicitHost</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">isRootAdmin</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">quickRestore</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PermissionDeniedException</span><span class="p">(</span>
+<span class="w">                    </span><span class="s">"Parameter "</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ApiConstants</span><span class="p">.</span><span class="na">HOST_ID</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s">" can only be specified by a Root Admin, permission denied"</span><span class="p">);</span>
+<span class="w">        </span><span class="p">}</span>
+</code></pre></div>
+<p>The path that creates and starts a VM passes <code>true</code> for <code>isExplicitHost</code> (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/vm/UserVmManagerImpl.java#L5996-L6000">UserVmManagerImpl.java, lines 5996–6000</a>); <code>quickRestore</code> is a special case, for restoring from a backup:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/vm/UserVmManagerImpl.java, lines 5996–6000</span>
+<span class="nd">@Override</span>
+<span class="kd">public</span><span class="w"> </span><span class="n">Pair</span><span class="o">&lt;</span><span class="n">UserVmVO</span><span class="p">,</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">VirtualMachineProfile</span><span class="p">.</span><span class="na">Param</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="nf">startVirtualMachine</span><span class="p">(</span><span class="kt">long</span><span class="w"> </span><span class="n">vmId</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">podId</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">clusterId</span><span class="p">,</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">hostId</span><span class="p">,</span>
+<span class="w">        </span><span class="nd">@NotNull</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">VirtualMachineProfile</span><span class="p">.</span><span class="na">Param</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">additionalParams</span><span class="p">,</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">deploymentPlannerToUse</span><span class="p">,</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">quickRestore</span><span class="p">)</span>
+<span class="w">        </span><span class="kd">throws</span><span class="w"> </span><span class="n">ConcurrentOperationException</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceUnavailableException</span><span class="p">,</span><span class="w"> </span><span class="n">InsufficientCapacityException</span><span class="p">,</span><span class="w"> </span><span class="n">ResourceAllocationException</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">startVirtualMachine</span><span class="p">(</span><span class="n">vmId</span><span class="p">,</span><span class="w"> </span><span class="n">podId</span><span class="p">,</span><span class="w"> </span><span class="n">clusterId</span><span class="p">,</span><span class="w"> </span><span class="n">hostId</span><span class="p">,</span><span class="w"> </span><span class="n">additionalParams</span><span class="p">,</span><span class="w"> </span><span class="n">deploymentPlannerToUse</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">quickRestore</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="decide-record-instruct-in-that-order">Decide, record, instruct, in that order<a class="headerlink" href="#decide-record-instruct-in-that-order" title="Permanent link">¶</a></h3>
+<p>Each VM's record names its host (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/schema/src/main/java/com/cloud/vm/VMInstanceVO.java#L107-L108">VMInstanceVO.java, lines 107–108</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: engine/schema/src/main/java/com/cloud/vm/VMInstanceVO.java, lines 107–108</span>
+<span class="nd">@Column</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"host_id"</span><span class="p">,</span><span class="w"> </span><span class="n">updatable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">nullable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">)</span>
+<span class="kd">protected</span><span class="w"> </span><span class="n">Long</span><span class="w"> </span><span class="n">hostId</span><span class="p">;</span>
+</code></pre></div>
+<p>And its owner (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/schema/src/main/java/com/cloud/vm/VMInstanceVO.java#L151-L152">VMInstanceVO.java, lines 151–152</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: engine/schema/src/main/java/com/cloud/vm/VMInstanceVO.java, lines 151–152</span>
+<span class="nd">@Column</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"account_id"</span><span class="p">)</span>
+<span class="kd">protected</span><span class="w"> </span><span class="kt">long</span><span class="w"> </span><span class="n">accountId</span><span class="p">;</span>
+</code></pre></div>
+<p>Once the host is chosen (the planning above, line 1475), the VM's change of state writes the chosen host into its record (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java#L1510">VirtualMachineManagerImpl.java, line 1510</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java, line 1510</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">changeState</span><span class="p">(</span><span class="n">vm</span><span class="p">,</span><span class="w"> </span><span class="n">Event</span><span class="p">.</span><span class="na">OperationRetry</span><span class="p">,</span><span class="w"> </span><span class="n">destHostId</span><span class="p">,</span><span class="w"> </span><span class="n">work</span><span class="p">,</span><span class="w"> </span><span class="n">Step</span><span class="p">.</span><span class="na">Prepare</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<p>Only then, further down the same method, is the start instruction sent to that host (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java#L1578">VirtualMachineManagerImpl.java, line 1578</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: engine/orchestration/src/main/java/com/cloud/vm/VirtualMachineManagerImpl.java, line 1578</span>
+<span class="n">_agentMgr</span><span class="p">.</span><span class="na">send</span><span class="p">(</span><span class="n">destHostId</span><span class="p">,</span><span class="w"> </span><span class="n">cmds</span><span class="p">);</span>
+</code></pre></div>
+<h3 id="on-a-kvm-host-the-instruction-ends-at-libvirt">On a KVM host, the instruction ends at libvirt<a class="headerlink" href="#on-a-kvm-host-the-instruction-ends-at-libvirt" title="Permanent link">¶</a></h3>
+<p>On a KVM host, this class of CloudStack's program handles the start instruction (<code>StartCommand</code>) (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtStartCommandWrapper.java#L55-L56">LibvirtStartCommandWrapper.java, lines 55–56</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtStartCommandWrapper.java, lines 55–56</span>
+<span class="nd">@ResourceWrapper</span><span class="p">(</span><span class="n">handles</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="n">StartCommand</span><span class="p">.</span><span class="na">class</span><span class="p">)</span>
+<span class="kd">public</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="kd">class</span> <span class="nc">LibvirtStartCommandWrapper</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">CommandWrapper</span><span class="o">&lt;</span><span class="n">StartCommand</span><span class="p">,</span><span class="w"> </span><span class="n">Answer</span><span class="p">,</span><span class="w"> </span><span class="n">LibvirtComputingResource</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</code></pre></div>
+<p>It starts the VM through libvirt (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtStartCommandWrapper.java#L97">LibvirtStartCommandWrapper.java, line 97</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtStartCommandWrapper.java, line 97</span>
+<span class="n">libvirtComputingResource</span><span class="p">.</span><span class="na">startVM</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="n">vmName</span><span class="p">,</span><span class="w"> </span><span class="n">vmFinalSpecification</span><span class="p">);</span>
+</code></pre></div>
+<p>That method hands the VM's description to libvirt, as the <a href="../02.Hypervisors/#cloudstack-uses-libvirt-through-its-own-program-and-sends-the-full-description-at-each-start">hypervisor article's answers</a> show.</p>
+<h3 id="a-request-on-another-tenants-vm-is-refused">A request on another tenant's VM is refused<a class="headerlink" href="#a-request-on-another-tenants-vm-is-refused" title="Permanent link">¶</a></h3>
+<p>For a request that names a VM, the management server checks the caller against the VM's owner. Root admins pass, and so does the owner (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/acl/DomainChecker.java#L234-L243">DomainChecker.java, lines 234–243</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/acl/DomainChecker.java, lines 234–243</span>
+<span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">validateCallerHasAccessToEntityOwner</span><span class="p">(</span><span class="n">Account</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="n">ControlledEntity</span><span class="w"> </span><span class="n">entity</span><span class="p">,</span><span class="w"> </span><span class="n">AccessType</span><span class="w"> </span><span class="n">accessType</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">PermissionDeniedException</span><span class="w"> </span><span class="n">exception</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PermissionDeniedException</span><span class="p">(</span><span class="s">"Caller does not have permission to operate with provided resource."</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_accountService</span><span class="p">.</span><span class="na">isRootAdmin</span><span class="p">(</span><span class="n">caller</span><span class="p">.</span><span class="na">getId</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">caller</span><span class="p">.</span><span class="na">getId</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">entity</span><span class="p">.</span><span class="na">getAccountId</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+</code></pre></div>
+<p>After two more rules, for administrators of part of the cloud and for shared projects (both taught later in the course), everyone else is refused (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/server/src/main/java/com/cloud/acl/DomainChecker.java#L275-L276">DomainChecker.java, lines 275–276</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: server/src/main/java/com/cloud/acl/DomainChecker.java, lines 275–276</span>
+<span class="n">logger</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">"Caller: {} does not have permission to access {}"</span><span class="p">,</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="n">entityLog</span><span class="p">);</span>
+<span class="k">throw</span><span class="w"> </span><span class="n">exception</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="xapi-and-vcenter-the-other-families-own-management-software">XAPI and vCenter: the other families' own management software<a class="headerlink" href="#xapi-and-vcenter-the-other-families-own-management-software" title="Permanent link">¶</a></h3>
+<p>For the XenServer family, CloudStack's code calls XAPI (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/xenserver/src/main/java/com/cloud/hypervisor/xenserver/resource/CitrixResourceBase.java#L185-L186">CitrixResourceBase.java, lines 185–186</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/xenserver/src/main/java/com/cloud/hypervisor/xenserver/resource/CitrixResourceBase.java, lines 185–186</span>
+<span class="o">*</span><span class="w"> </span><span class="n">CitrixResourceBase</span><span class="w"> </span><span class="n">encapsulates</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">calls</span><span class="w"> </span><span class="kd">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">XenServer</span><span class="w"> </span><span class="n">Xapi</span><span class="w"> </span><span class="n">process</span><span class="w"> </span><span class="kd">to</span>
+<span class="o">*</span><span class="w"> </span><span class="n">perform</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="n">functionalities</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">CloudStack</span><span class="p">.</span>
+</code></pre></div>
+<p>For VMware, CloudStack's docs (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/installguide/hypervisor/vsphere.html#other-requirements">Host VMware vSphere Installation</a>) say: "CloudStack requires ESXi and vCenter." vCenter must be "available to manage the vSphere hosts", and reachable "so that it can communicate with the CloudStack Management Server."</p>
+<h3 id="the-vms-keep-running-when-the-management-server-stops">The VMs keep running when the management server stops<a class="headerlink" href="#the-vms-keep-running-when-the-management-server-stops" title="Permanent link">¶</a></h3>
+<p>CloudStack's Concepts page (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/conceptsandterminology/concepts.html#massively-scalable-infrastructure-management">Massively Scalable Infrastructure Management</a>): "Maintenance or other outages of the management server can occur without affecting the Instances running in the cloud."</p>
+<p>What stops, from the reliability page the post quotes (<a href="https://docs.cloudstack.apache.org/en/4.22.1.1/adminguide/reliability.html#ha-for-management-server">HA for Management Server</a>): "When the Management Server is down, no new Instances can be created, and the end User and admin UI, API, dynamic load distribution, and HA will cease to work." The UI is the web interface; HA is the automatic restarts after a host fails. (The same section also calls the management server itself "stateless". That's too strong: each running copy also holds live connections to some of the hosts, as <a href="../../04.API-And-Database/">How Do You Ask CloudStack for Something?</a> <em>(coming soon)</em> shows. Only its lasting records are kept elsewhere.)</p>
+<p>On a KVM host, the code agrees. When CloudStack's program on the host loses its connection, it runs its disconnect steps, logs the loss and tries to reconnect (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/agent/src/main/java/com/cloud/agent/Agent.java#L640-L642">Agent.java, lines 640–642</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: agent/src/main/java/com/cloud/agent/Agent.java, lines 640–642</span>
+<span class="n">serverResource</span><span class="p">.</span><span class="na">disconnected</span><span class="p">();</span>
+<span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">"Lost connection to host: {}. Attempting reconnection while we still have {} commands in progress."</span><span class="p">,</span><span class="w"> </span><span class="n">shell</span><span class="p">.</span><span class="na">getConnectedHost</span><span class="p">(),</span><span class="w"> </span><span class="n">commandsInProgress</span><span class="p">.</span><span class="na">get</span><span class="p">());</span>
+<span class="n">stopAndCleanupConnection</span><span class="p">(</span><span class="kc">true</span><span class="p">);</span>
+</code></pre></div>
+<p>It keeps redialling until a management server answers (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/agent/src/main/java/com/cloud/agent/Agent.java#L648-L651">Agent.java, lines 648–651</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: agent/src/main/java/com/cloud/agent/Agent.java, lines 648–651</span>
+<span class="k">do</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">CollectionUtils</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">(</span><span class="n">avoidMSHostList</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="n">avoidMSHostList</span><span class="p">.</span><span class="na">contains</span><span class="p">(</span><span class="n">host</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">NioClient</span><span class="p">(</span><span class="n">getAgentName</span><span class="p">(),</span><span class="w"> </span><span class="n">host</span><span class="p">,</span><span class="w"> </span><span class="n">shell</span><span class="p">.</span><span class="na">getPort</span><span class="p">(),</span><span class="w"> </span><span class="n">shell</span><span class="p">.</span><span class="na">getWorkers</span><span class="p">(),</span><span class="w"> </span><span class="n">shell</span><span class="p">.</span><span class="na">getSslHandshakeTimeout</span><span class="p">(),</span><span class="w"> </span><span class="k">this</span><span class="p">);</span>
+<span class="w">        </span><span class="n">logger</span><span class="p">.</span><span class="na">info</span><span class="p">(</span><span class="s">"Reconnecting to host: {}"</span><span class="p">,</span><span class="w"> </span><span class="n">host</span><span class="p">);</span>
+</code></pre></div>
+<p>On the way, the only thing it does is cancel a move that was in progress: a VM's to another host, or a disk's to other storage. Those are the only two disconnect steps in the code (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtMigrateCommandWrapper.java#L247-L249">LibvirtMigrateCommandWrapper.java, lines 247–249</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtMigrateCommandWrapper.java, lines 247–249</span>
+<span class="c1">// add cancel hook before we start. If migration fails to start and hook is called, it's non-fatal</span>
+<span class="n">cancelHook</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">MigrationCancelHook</span><span class="p">(</span><span class="n">dm</span><span class="p">);</span>
+<span class="n">libvirtComputingResource</span><span class="p">.</span><span class="na">addDisconnectHook</span><span class="p">(</span><span class="n">cancelHook</span><span class="p">);</span>
+</code></pre></div>
+<p>and (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtMigrateVolumeCommandWrapper.java#L144-L145">LibvirtMigrateVolumeCommandWrapper.java, lines 144–145</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// cloudstack: plugins/hypervisors/kvm/src/main/java/com/cloud/hypervisor/kvm/resource/wrapper/LibvirtMigrateVolumeCommandWrapper.java, lines 144–145</span>
+<span class="n">cancelHook</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">VolumeMigrationCancelHook</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">destDiskLabel</span><span class="p">);</span>
+<span class="n">libvirtComputingResource</span><span class="p">.</span><span class="na">addDisconnectHook</span><span class="p">(</span><span class="n">cancelHook</span><span class="p">);</span>
+</code></pre></div>
+<p>Nothing on that path stops a running VM.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../02.Hypervisors/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Answers: How Does a Hypervisor Work?">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Answers: How Does a Hypervisor Work?
+              </div>
+            </div>
+          </a>
+        
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.indexes", "navigation.footer", "navigation.top", "content.code.copy", "content.action.edit", "search.highlight"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

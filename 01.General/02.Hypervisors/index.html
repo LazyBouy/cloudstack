@@ -1,0 +1,1778 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How Apache CloudStack works and why it is built that way, explained simply, with the code as the source of truth.">
+      
+      
+      
+        <link rel="canonical" href="https://lazybouy.github.io/cloudstack/01.General/02.Hypervisors/">
+      
+      
+        <link rel="prev" href="../01.Virtual-Machines/">
+      
+      
+        <link rel="next" href="../03.What-A-Cloud-Adds/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>How Does a Hypervisor Work? - CloudStack from the Ground Up</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#how-does-a-hypervisor-work" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CloudStack from the Ground Up" class="md-header__button md-logo" aria-label="CloudStack from the Ground Up" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CloudStack from the Ground Up
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              How Does a Hypervisor Work?
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden="">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required="">
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix="">
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/LazyBouy/cloudstack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    LazyBouy/cloudstack
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CloudStack from the Ground Up" class="md-nav__button md-logo" aria-label="CloudStack from the Ground Up" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"></path></svg>
+
+    </a>
+    CloudStack from the Ground Up
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/LazyBouy/cloudstack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    LazyBouy/cloudstack
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix="">
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CloudStack from the Ground Up
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked="">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 · General
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    01 · General
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01.Virtual-Machines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Is a Virtual Machine, and What Runs It?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does a Hypervisor Work?
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does a Hypervisor Work?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#what-youll-learn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you'll learn
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-hypervisor-is-several-parts-each-with-a-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A hypervisor is several parts, each with a job
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#every-operating-system-expects-to-be-in-charge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Every operating system expects to be in charge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-processors-help-hardware-virtualisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The processor's help: hardware virtualisation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kvm-runs-the-vms-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KVM runs the VMs' processors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qemu-plays-each-vms-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QEMU plays each VM's hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#libvirt-starts-and-stops-the-vms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        libvirt starts and stops the VMs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#follow-one-vm-a-start-and-a-disk-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow one VM: a start and a disk write
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Follow one VM: a start and a disk write">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Starting the VM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-to-its-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing to its disk
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-hypervisors-the-same-jobs-placed-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other hypervisors: the same jobs, placed differently
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Other hypervisors: the same jobs, placed differently">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-kvm-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where KVM fits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#in-short" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In short
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03.What-A-Cloud-Adds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Does a Cloud Add to Virtual Machines?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04.API-And-Database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Do You Ask CloudStack for Something? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05.Accounts-And-Roles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Who May Ask the Cloud for What? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06.Talking-To-Hosts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does CloudStack Talk to a Host? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07.Where-Disks-Live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Where Does a VM's Disk Live? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08.Clusters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Which Hosts Can a VM Move Between? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09.Zones-And-Pods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does CloudStack Map a Data Centre? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10.Templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Where Do New VMs Come From? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11.System-VMs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Why Does CloudStack Run VMs of Its Own? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12.Guest-Networks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does a VM Get onto a Network? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../13.Journey-Of-A-VM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Happens When Someone Asks for a VM? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../14.Lab-Simulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Can You Try CloudStack Without Real Servers? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../15.Lab-Preparing-A-Machine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What Does One Machine Need to Run CloudStack? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../16.Lab-Building-The-Cloud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How Does One Machine Become a Working Cloud? (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../17.Exercises/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exercises: The Big Picture (coming soon)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_19">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../99.Check-Yourself-Answers/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Check-yourself answers
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_19" id="__nav_2_19_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_19_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_19">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Check-yourself answers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix="">
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../99.Check-Yourself-Answers/01.Virtual-Machines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: What Is a Virtual Machine, and What Runs It?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../99.Check-Yourself-Answers/02.Hypervisors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: How Does a Hypervisor Work?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../99.Check-Yourself-Answers/03.What-A-Cloud-Adds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Answers: What Does a Cloud Add to Virtual Machines?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+      
+        <li class="md-nav__item">
+  <a href="#what-youll-learn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What you'll learn
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-hypervisor-is-several-parts-each-with-a-job" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A hypervisor is several parts, each with a job
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#every-operating-system-expects-to-be-in-charge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Every operating system expects to be in charge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-processors-help-hardware-virtualisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The processor's help: hardware virtualisation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kvm-runs-the-vms-processors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KVM runs the VMs' processors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qemu-plays-each-vms-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QEMU plays each VM's hardware
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#libvirt-starts-and-stops-the-vms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        libvirt starts and stops the VMs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#follow-one-vm-a-start-and-a-disk-write" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow one VM: a start and a disk write
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Follow one VM: a start and a disk write">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-the-vm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Starting the VM
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-to-its-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Writing to its disk
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-hypervisors-the-same-jobs-placed-differently" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other hypervisors: the same jobs, placed differently
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Other hypervisors: the same jobs, placed differently">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-kvm-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where KVM fits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#in-short" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In short
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/LazyBouy/cloudstack/edit/learn/00.Learn/01.General/02.Hypervisors.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"></path></svg>
+    </a>
+  
+  
+
+
+<h1 id="how-does-a-hypervisor-work">How Does a Hypervisor Work?<a class="headerlink" href="#how-does-a-hypervisor-work" title="Permanent link">¶</a></h1>
+<p><strong>Level:</strong> Beginner · <strong>Type:</strong> Concept · <strong>Written against:</strong> commit <code>1a48a87587</code> · <strong>Reading time:</strong> about 15 minutes</p>
+<p>On your laptop, one kernel is in charge. Your programs ask it for memory, files and the network, and only the kernel commands the hardware directly.</p>
+<p>Inside a VM, Ubuntu's kernel is built the same way: it expects to be in charge of the machine.</p>
+<p>The <a href="../01.Virtual-Machines/">first article</a> put three VMs on one server: three kernels, each built to command the hardware, on one real machine. The hypervisor makes that work. But how?</p>
+<p>And on KVM, each running VM shows up on the server as one process. What is that process? Is every hypervisor built like that?</p>
+<h2 id="what-youll-learn">What you'll learn<a class="headerlink" href="#what-youll-learn" title="Permanent link">¶</a></h2>
+<ul>
+<li>Why several operating systems can't simply share one machine, and how the processor's hardware virtualisation lets them.</li>
+<li>What each part of the hypervisor does on a KVM host: KVM in the kernel, one QEMU process per VM, and libvirt.</li>
+<li>What happens when a VM starts, and when it writes to its disk.</li>
+<li>How type 1 and type 2 hypervisors differ, and where KVM fits.</li>
+</ul>
+<h2 id="a-hypervisor-is-several-parts-each-with-a-job">A hypervisor is several parts, each with a job<a class="headerlink" href="#a-hypervisor-is-several-parts-each-with-a-job" title="Permanent link">¶</a></h2>
+<p>In the first article, the hypervisor was one box between the hardware and the VMs: in the course's picture, the kitchen's equipment. Let's open the equipment up.</p>
+<p><a href="https://csrc.nist.gov/pubs/sp/800/125/a/r1/final">NIST</a>, the US standards body you met in the first article, calls the hypervisor platform "a collection of software modules". It splits the work three ways:</p>
+<ul>
+<li>a core gives the VMs their processors and memory;</li>
+<li>other pieces give them devices, such as disks and network cards;</li>
+<li>management pieces start and stop VMs.</li>
+</ul>
+<p>On a KVM host, each job has a part of its own, and the processor itself helps too. You'll meet them in the order a VM needs them.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-opened.png" data-desc-position="bottom"><img alt="A green box, the kitchen (host): one KVM server. Inside it, the Linux kernel with KVM sits above the real hardware: a processor with hardware virtualisation, memory, a disk and a network card. A note says: the equipment (hypervisor), opened: its core, KVM, is in the kernel." src="../diagrams/02-opened.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>The equipment opened: its core, KVM, sits in the host's kernel.</p>
+<p>The kitchen picture stops here: nothing in a kitchen is like the processor's own help, or a process for each brand. From now on, the real parts carry the article.</p>
+<p>We'll follow one VM through it all: the Ubuntu web server from the first article, stopped for now.</p>
+<h2 id="every-operating-system-expects-to-be-in-charge">Every operating system expects to be in charge<a class="headerlink" href="#every-operating-system-expects-to-be-in-charge" title="Permanent link">¶</a></h2>
+<p>Start with the problem.</p>
+<p>Some operations are privileged: only the part in charge of the machine may do them, such as talking to a disk or deciding which memory belongs to whom. On your laptop, programs never do them. They ask the kernel, and the kernel does.</p>
+<p>Inside a VM, Ubuntu's kernel is still a kernel, written to do those operations itself.</p>
+<p>Now put three kernels on one server. If each really did its privileged operations, all three would command the same disk and the same memory, and nothing would keep the VMs apart.</p>
+<p>So the hypervisor has to stay in charge. <a href="https://csrc.nist.gov/pubs/sp/800/125/a/r1/final">NIST</a> compares it to the kernel you know: it keeps VMs apart, just as an operating system keeps its processes apart.</p>
+<p>But a guest's kernel gives those commands itself, as it would on a real machine. It doesn't ask; it acts.</p>
+<p>Without help, one way out is for the hypervisor to find the guests' instructions (the basic steps a processor carries out) that touch the machine itself, and rewrite them in software: "binary translation", in <a href="https://csrc.nist.gov/pubs/sp/800/125/a/r1/final">NIST's</a> words. That's extra code running with full privileges, and the less of it there is, the easier it is to check.</p>
+<p>There's a better way, built into the processor.</p>
+<h2 id="the-processors-help-hardware-virtualisation">The processor's help: hardware virtualisation<a class="headerlink" href="#the-processors-help-hardware-virtualisation" title="Permanent link">¶</a></h2>
+<p><strong>Hardware virtualisation</strong> is a set of features built into the processor itself (Intel's VT-x, AMD's AMD-V) that let it run a VM's own code directly while the hypervisor stays in charge.</p>
+<p>Here's the trick. The processor gets a second, restricted mode for VMs, called guest mode. The hypervisor runs in the processor's more powerful mode, and a VM's code, kernel and programs alike, runs in guest mode.</p>
+<p>Inside guest mode, Ubuntu's kernel still runs at a kernel's usual level of privilege, and its programs at theirs, just as on a real machine. Its code runs straight on the real processor, with nothing translating it.</p>
+<p>When the guest reaches for something only the hypervisor may touch, such as a device, the processor stops the guest and hands control to the hypervisor. The hypervisor deals with it and lets the guest carry on.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-handover.png" data-desc-position="bottom"><img alt="On the left, a blue box: Ubuntu's code, kernel and programs, in guest mode, straight on the real processor. On the right, a green box: the hypervisor. A solid arrow from Ubuntu to the hypervisor says: reaches for the real machine, the processor stops it and hands over. A solid arrow back says: done, the guest carries on. A note on Ubuntu's box says: only some operations cause a hand-over." src="../diagrams/02-handover.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>The guest runs straight on the processor until it reaches for the real machine; then the processor hands over.</p>
+<p>In this picture and the ones below, solid arrows are requests and instructions.</p>
+<p>The processor helps with memory too. It translates each VM's idea of its memory, in hardware, into places in the host's real memory. That's how the hypervisor, with the processor's help, keeps each VM's memory separate.</p>
+<p>So what does all this spare the hypervisor? The rewriting. It has nothing to translate, so less of its code runs with full privileges.</p>
+<p>And an unchanged operating system runs in a VM, with its usual drivers (the parts of an operating system that talk to devices).</p>
+<p>The cost: every hand-over takes time. <a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8221.pdf">NIST</a> calls these switches "the main cause of performance degradation in a virtualized system". Only some operations cause one.</p>
+<p>It's a common misconception that a hypervisor runs each VM's instructions one by one, like an emulator (a program that imitates a processor in software). With hardware virtualisation, the processor runs them.</p>
+<p>Nor is hardware virtualisation software you install. It's in the processor, and it may need switching on in the BIOS settings, as the first article's <a href="../01.Virtual-Machines/#try-it-in-your-lab-optional">lab section</a> said.</p>
+<p>KVM depends on it: "For Intel and AMD hardware, KVM requires virtualization extensions in order to run," say <a href="https://ubuntu.com/server/docs/explanation/virtualisation/vm-tools-in-the-ubuntu-space/">Ubuntu's docs</a>. So CloudStack checks every KVM host for it: when a host is added, CloudStack's setup on that machine stops if KVM can't run there. On Ubuntu it uses the same <code>kvm-ok</code> check as the first article's <a href="../01.Virtual-Machines/#try-it-in-your-lab-optional">lab section</a> (the code is on the answers page).</p>
+<h2 id="kvm-runs-the-vms-processors">KVM runs the VMs' processors<a class="headerlink" href="#kvm-runs-the-vms-processors" title="Permanent link">¶</a></h2>
+<p>On a KVM host, which part of the hypervisor takes over when the processor hands control back? KVM: the kernel modules you met in the <a href="../01.Virtual-Machines/#a-hypervisor-shares-out-the-real-machine">first article</a>.</p>
+<p>KVM's job is the VM's processors. A VM sees one or more CPUs of its own, its virtual processors. To run one, KVM switches the real processor into guest mode, lets the VM's code run, and takes control back at each hand-over.</p>
+<p>With the processor's help, KVM also keeps each VM's memory separate.</p>
+<p>A host has only so many real processors, though. Who decides which VM's virtual processor runs now? The same Linux kernel that shares the processor among your programs.</p>
+<p>On KVM, in <a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8221.pdf">NIST's</a> words, VMs "run as normal Linux processes", so the kernel shares the real processors among them and your other programs alike.</p>
+<p>What KVM doesn't give the VM is its disks and network cards. <a href="https://csrc.nist.gov/pubs/sp/800/125/a/r1/final">NIST</a> draws the same line for hypervisors in general: processors and memory directly, devices through other "software modules". So who gives the VM a disk and a network card?</p>
+<h2 id="qemu-plays-each-vms-hardware">QEMU plays each VM's hardware<a class="headerlink" href="#qemu-plays-each-vms-hardware" title="Permanent link">¶</a></h2>
+<p>A guest operating system expects real-looking hardware that its drivers know how to talk to: a disk controller, a network card, a graphics card. KVM provides none of these.</p>
+<p><strong>QEMU</strong> is the program that plays them. On a KVM host, it gives each VM virtual disks, network cards and the rest of a PC: devices the guest's drivers recognise. It makes them work with the host's real ones.</p>
+<p>Its name is short for Quick Emulator: it imitates hardware in software. Its <a href="https://manpages.ubuntu.com/manpages/noble/man1/qemu-system-x86_64.1.html">manual</a> lists the PC parts it imitates, from disk controllers to network adapters.</p>
+<p>Here's the answer to the first article's puzzle. On a KVM host, each running VM is one QEMU process. CloudStack's own script finds VMs exactly that way (<a href="https://github.com/apache/cloudstack/blob/1a48a87587c03472feefb081cfac71b2ebd0f407/scripts/vm/hypervisor/kvm/kvmheartbeat.sh#L75-L78">kvmheartbeat.sh, lines 75–78</a>):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># cloudstack: scripts/vm/hypervisor/kvm/kvmheartbeat.sh, lines 75–78</span>
+<span class="c1">#delete VMs on this mountpoint</span>
+deleteVMs<span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">  </span><span class="nb">local</span><span class="w"> </span><span class="nv">mountPoint</span><span class="o">=</span><span class="nv">$1</span>
+<span class="w">  </span><span class="nv">vmPids</span><span class="o">=</span><span class="k">$(</span>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>qemu<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"</span><span class="nv">$mountPoint</span><span class="s2">"</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>awk<span class="w"> </span><span class="s1">'{print $2}'</span><span class="w"> </span><span class="m">2</span>&gt;<span class="w"> </span>/dev/null<span class="k">)</span>
+</code></pre></div>
+<p>The last line lists every process on the host and keeps the ones that mention <code>qemu</code>. It then narrows them to the VMs whose disks are on one storage mount, and takes each one's process number: one number per running VM. (The script stops those VMs when their storage has dropped away; why is a story for later.)</p>
+<p>A stopped VM has no process at all. Our web server VM, still stopped, has none yet.</p>
+<p>Even the VM's memory is part of its QEMU process's memory, which KVM and the processor present to the guest as its own. One process on the outside, a whole computer on the inside: now you know its name.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-qemu.png" data-desc-position="bottom"><img alt="The same KVM host as before, now with two new boxes above the Linux kernel, side by side: two QEMU processes, one holding the desktop VM and one holding the database server VM. A note says: new, one QEMU process per running VM." src="../diagrams/02-qemu.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>Above the kernel, one QEMU process for each running VM.</p>
+<p>It's a common misconception that KVM and QEMU are rival hypervisors. On a KVM host they're two parts of one hypervisor: KVM in the kernel, and QEMU outside it, "the user-space backend for KVM" in <a href="https://ubuntu.com/server/docs/explanation/virtualisation/vm-tools-in-the-ubuntu-space/">Ubuntu's docs</a>.</p>
+<p>User space is simply everything outside the kernel, where ordinary programs run.</p>
+<p>Which one drives? QEMU. It builds the VM's virtual hardware and asks KVM to run the VM's processors.</p>
+<p>QEMU can even run a VM without KVM, imitating the processor in software too. That's its default: in <a href="https://www.qemu.org/docs/master/system/introduction.html">QEMU's docs</a>, "you must specify an accelerator type to take advantage of hardware virtualization". CloudStack always does: every VM it starts on a KVM host asks for KVM.</p>
+<h2 id="libvirt-starts-and-stops-the-vms">libvirt starts and stops the VMs<a class="headerlink" href="#libvirt-starts-and-stops-the-vms" title="Permanent link">¶</a></h2>
+<p>Who starts a VM's QEMU process? You could, by hand, giving QEMU a full description of the VM: its processors, memory, disks and network cards. Then you'd have to keep track of which VMs are running.</p>
+<p>QEMU's own command line and controls "are typically only used for development purposes", say <a href="https://ubuntu.com/server/docs/how-to/virtualisation/qemu/">Ubuntu's docs</a>. So people and programs usually go through libvirt instead, and CloudStack does too.</p>
+<p><strong>libvirt</strong> is a toolkit for managing VMs, with a background service on the host, <code>libvirtd</code>. People and programs ask it to start, stop and list VMs, and it does the work by controlling the VMs' QEMU processes.</p>
+<p>What it does for them:</p>
+<ul>
+<li>it can keep a description of each VM's hardware;</li>
+<li>it starts a VM by launching one QEMU process with that description, and stops VMs too;</li>
+<li>it watches which VMs are running, and in what state;</li>
+<li>it offers one steady way to ask, the same whatever QEMU's version, and even for other hypervisors: in <a href="https://ubuntu.com/server/docs/how-to/virtualisation/qemu/">Ubuntu's docs'</a> words, it "provides an abstraction from specific versions and hypervisors".</li>
+</ul>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-libvirt.png" data-desc-position="bottom"><img alt="The same KVM host, now with a libvirt box (its service: libvirtd) to the left of the two QEMU processes. A solid arrow from libvirt to the processes says: starts, stops each one. Below them sit the Linux kernel with KVM and the real hardware. A note says: new, libvirt manages the VMs." src="../diagrams/02-libvirt.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>libvirt sits beside the QEMU processes, starting and stopping each one.</p>
+<p>CloudStack's <a href="https://docs.cloudstack.apache.org/en/4.22.1.1/installguide/hypervisor/kvm.html">docs for KVM hosts</a> say it plainly: "CloudStack uses libvirt for managing Instances" (Instances, remember, are VMs). CloudStack talks to libvirt through a program of its own on each KVM host, which <a href="../06.Talking-To-Hosts/">How Does CloudStack Talk to a Host?</a> <em>(coming soon)</em> introduces.</p>
+<p>One difference on a CloudStack host: CloudStack doesn't let libvirt keep its VMs' descriptions. It sends the full description every time it starts a VM.</p>
+<p>Two misconceptions to clear up. libvirt isn't the hypervisor: it manages, while KVM and QEMU run the VMs. The <code>libvirtd</code> <a href="https://manpages.ubuntu.com/manpages/noble/man8/libvirtd.8.html">manual</a> makes the point: "Restarting libvirtd does not impact running guests."</p>
+<p>And libvirt isn't part of CloudStack. It's a separate open-source project, and CloudStack is only one of its users.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p><strong>OpenStack lens:</strong> OpenStack, another open-source cloud platform, drives its KVM hosts through the same libvirt: its <a href="https://docs.openstack.org/doc-contrib-guide/common/glossary.html">glossary</a> calls libvirt the library it uses "to interact with many of its supported hypervisors". The program above libvirt is each cloud's own. (OpenStack's docs also list "QEMU" as a hypervisor of its own: they mean <a href="https://docs.openstack.org/nova/latest/admin/configuration/hypervisor-qemu.html">QEMU without KVM</a>.)</p>
+</div>
+<h2 id="follow-one-vm-a-start-and-a-disk-write">Follow one VM: a start and a disk write<a class="headerlink" href="#follow-one-vm-a-start-and-a-disk-write" title="Permanent link">¶</a></h2>
+<p>All the parts are on the table. Let's start the web server VM, then watch it write to its disk.</p>
+<h3 id="starting-the-vm">Starting the VM<a class="headerlink" href="#starting-the-vm" title="Permanent link">¶</a></h3>
+<ol>
+<li>An admin asks libvirt to start the web server VM.</li>
+<li>libvirt reads the VM's description and launches one QEMU process for it.</li>
+<li>QEMU builds the VM's virtual hardware and asks KVM to run its processors.</li>
+<li>KVM switches the processor into guest mode, and Ubuntu boots on its virtual hardware, its code running straight on the processor.</li>
+</ol>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-start.png" data-desc-position="bottom"><img alt="Four boxes stacked top to bottom. An admin, in indigo, sends 1, start the VM, to libvirt. libvirt sends 2, launches, to one QEMU process that holds the web server VM (Ubuntu). The QEMU process sends 3, run its processors, to KVM, in the kernel. A note on KVM says: QEMU uses KVM, not the other way round." src="../diagrams/02-start.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>Starting a VM: the admin asks libvirt, libvirt launches QEMU, and QEMU asks KVM to run the VM's processors.</p>
+<h3 id="writing-to-its-disk">Writing to its disk<a class="headerlink" href="#writing-to-its-disk" title="Permanent link">¶</a></h3>
+<p>Now a program inside the VM saves a file, and Ubuntu's kernel sends the data to its disk: the virtual one QEMU plays.</p>
+<ol>
+<li>Ubuntu reaches for its disk, a device, so the processor stops it for a moment and hands control to KVM.</li>
+<li>KVM passes the request on to the VM's QEMU process.</li>
+<li>QEMU writes the data to the VM's disk on the host: a file, a device or storage reached over the network, wherever the host keeps it. That's the subject of <a href="../07.Where-Disks-Live/">Where Does a VM's Disk Live?</a> <em>(coming soon)</em>.</li>
+<li>QEMU reports the write done to Ubuntu.</li>
+</ol>
+<p>Here are the same steps as pictures, with each frame's new arrow drawn bold. The dashed arrow is a report back.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-write-1.png" data-desc-position="bottom"><img alt="Four boxes stacked top to bottom: Ubuntu in guest mode, KVM in the kernel, the VM's QEMU process, and the VM's disk on the host. One bold arrow, from Ubuntu down to KVM, says: 1, reaches for its disk." src="../diagrams/02-write-1.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>Step 1: Ubuntu reaches for its disk; the processor stops it for a moment and hands control to KVM.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-write-2.png" data-desc-position="bottom"><img alt="The same four boxes, with step 1's arrow now thin. Two new bold arrows: from KVM down to the QEMU process, 2, passes it on; from the QEMU process down to the VM's disk, 3, writes the data." src="../diagrams/02-write-2.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>Steps 2 and 3: KVM passes the request on, and QEMU does the real write on the host.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-write-3.png" data-desc-position="bottom"><img alt="The same four boxes and three thin arrows, plus a new bold dashed arrow from the QEMU process back up to Ubuntu: 4, done." src="../diagrams/02-write-3.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>Step 4: QEMU reports the write done to Ubuntu, which never touched the real disk.</p>
+<p>Why can't Ubuntu write to the real disk itself? It runs in guest mode, where the hypervisor stays in charge, and the only disk it knows is the one QEMU plays.</p>
+<p>So Ubuntu never touched the real disk. QEMU did, on its behalf.</p>
+<p>One honest detail: some kinds of virtual disk need fewer of these stops than others; a later module on hosts shows which. On a CloudStack host, the path stays the same either way: KVM takes over at the device, and QEMU does the real write.</p>
+<h2 id="other-hypervisors-the-same-jobs-placed-differently">Other hypervisors: the same jobs, placed differently<a class="headerlink" href="#other-hypervisors-the-same-jobs-placed-differently" title="Permanent link">¶</a></h2>
+<p>Is every hypervisor built like KVM? No. Every hypervisor has the same jobs to do; what differs is where the hypervisor is installed, and what sits underneath it.</p>
+<p><a href="https://csrc.nist.gov/CSRC/media/Publications/Shared/documents/itl-bulletin/itlbul2018-03.pdf">NIST</a> names the two classic kinds in one sentence: a hypervisor is installed "either directly on the hardware, or bare metal (Type 1 Hypervisor), or on top of a full-fledged conventional OS, called Host OS (Type 2 Hypervisor)".</p>
+<p>A <strong>type 1 hypervisor</strong> is installed straight on the bare machine, with no ordinary operating system underneath.</p>
+<p>VMware's ESXi is one, and so is Xen, the hypervisor inside XenServer and XCP-ng: <a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8221.pdf">NIST</a> lists both among the type 1 hypervisors. You'll meet both families again in <a href="../03.What-A-Cloud-Adds/#cloudstack-commands-hypervisors-it-isnt-one">What Does a Cloud Add to Virtual Machines?</a>.</p>
+<p>A <strong>type 2 hypervisor</strong> runs as an application on an ordinary operating system, like any other program.</p>
+<p>VirtualBox on a laptop is one. CloudStack's <a href="https://docs.cloudstack.apache.org/en/4.22.1.1/quickinstallationguide/qig.html">Quick Installation Guide</a> suggests it if you have no spare server to try CloudStack on.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-types.png" data-desc-position="bottom"><img alt="Two machines side by side. On the left, in green, type 1, a server: the hypervisor (ESXi or Xen), running the VMs, sits directly on the server's hardware. On the right, in grey, type 2, a laptop: the hypervisor (VirtualBox, an app), running the VMs, sits on the laptop's operating system, which sits on the laptop's hardware. A note says: the same job; what differs is what's underneath." src="../diagrams/02-types.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>The same job on different ground: a type 1 hypervisor sits on the hardware; a type 2 one runs on an operating system.</p>
+<h3 id="where-kvm-fits">Where KVM fits<a class="headerlink" href="#where-kvm-fits" title="Permanent link">¶</a></h3>
+<p>So which kind is KVM?</p>
+<p>It's a common misconception that KVM is type 2 because it runs on Linux. KVM doesn't run on Linux like an app: it's part of the Linux kernel, which, with KVM loaded, becomes the hypervisor's core, right on the hardware.</p>
+<p>Yet the machine is still an ordinary Linux system, where other programs can run beside the VMs and compete with them for the hardware.</p>
+<p><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8221.pdf">NIST</a> says such systems have "features of both". KVM, it says, "effectively converts the host OS to a Type 1 hypervisor but is also categorized as a Type 2 hypervisor because Linux distributions are still general-purpose OSs with other applications competing for VM resources".</p>
+<p><a href="https://www.shapeblue.com/choosing-the-right-hypervisor-apache-cloudstack-hypervisor-support/">ShapeBlue</a>, a company whose engineers write much of CloudStack, simply calls KVM "a Type 1 hypervisor integrated into the Linux kernel". Rather than pick a label, remember what it is: a full Linux kernel turned hypervisor, with ordinary programs alongside.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../diagrams/02-kvm-place.png" data-desc-position="bottom"><img alt="One green machine, KVM, a server. At the top, side by side: the VMs, each a QEMU process, in blue, and ordinary programs, in grey. Below them, the Linux kernel with KVM, then the server's hardware. A note says: features of both: the kernel sits on the hardware, like type 1; ordinary programs run beside the VMs, like type 2." src="../diagrams/02-kvm-place.png"></a></p>
+<p><em>Click the picture to enlarge it.</em></p>
+<p>KVM: the kernel sits on the hardware, and ordinary programs run beside the VMs.</p>
+<p>One last warning. CloudStack's own phrase "hypervisor type" means something else: which hypervisor a host runs (KVM, VMware, XenServer and so on), not type 1 or type 2.</p>
+<p><a href="../08.Clusters/">Which Hosts Can a VM Move Between?</a> <em>(coming soon)</em> teaches it.</p>
+<h2 id="in-short">In short<a class="headerlink" href="#in-short" title="Permanent link">¶</a></h2>
+<ul>
+<li>Every operating system's kernel expects to command the hardware, so several can share one machine only if the hypervisor stays in charge.</li>
+<li>Hardware virtualisation, built into the processor, runs a VM's code directly in a restricted guest mode, and hands control to the hypervisor when the guest reaches for the real machine. On Intel and AMD processors, KVM needs it.</li>
+<li>On a KVM host, KVM in the kernel runs the VMs' processors and, with the processor's help, keeps their memory separate. One QEMU process per running VM plays its devices, and libvirt starts, stops and watches the VMs.</li>
+<li>A VM writes only to the virtual disk QEMU plays: KVM takes over when the guest reaches for it, and QEMU does the real write on the host.</li>
+<li>A type 1 hypervisor (ESXi, Xen) sits on the bare machine; a type 2 one (VirtualBox) runs as an app on an operating system. KVM, a full Linux kernel turned hypervisor, has features of both.</li>
+</ul>
+<h2 id="check-yourself">Check yourself<a class="headerlink" href="#check-yourself" title="Permanent link">¶</a></h2>
+<ol>
+<li>On a KVM host, which part runs a VM's processors, which plays its disk and network card, and which starts and stops it?</li>
+<li>Ubuntu, inside a VM, sends data to its disk. What happens, step by step? And why can't Ubuntu write to the real disk itself?</li>
+<li>What does hardware virtualisation spare the hypervisor, and what does it cost? Why does CloudStack refuse a KVM host without it?</li>
+<li>On a KVM host, <code>ps</code> shows one process for each running VM. Whose process is it? And what happens to those VMs if an admin restarts <code>libvirtd</code>?</li>
+<li>Type 1 or type 2: ESXi, VirtualBox, Xen? And why is KVM hard to label?</li>
+</ol>
+<p><a href="../99.Check-Yourself-Answers/02.Hypervisors/">Check your answers →</a></p>
+<h2 id="further-reading">Further reading<a class="headerlink" href="#further-reading" title="Permanent link">¶</a></h2>
+<ul>
+<li><a href="https://ubuntu.com/server/docs/explanation/virtualisation/vm-tools-in-the-ubuntu-space/">VM tools in the Ubuntu space</a>, in the Ubuntu Server docs: KVM, QEMU and libvirt on one short page.</li>
+<li><a href="https://nvlpubs.nist.gov/nistpubs/ir/2019/NIST.IR.8221.pdf">NISTIR 8221</a>, section 2.1: type 1 and type 2 hypervisors, and a drawing of KVM's parts.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/125/a/r1/final">NIST SP 800-125A Rev. 1</a>: what a hypervisor must do, and how the processor helps, in depth.</li>
+<li><a href="https://docs.cloudstack.apache.org/en/4.22.1.1/installguide/hypervisor/kvm.html">Host KVM Installation</a>, in CloudStack's docs: what CloudStack asks of a KVM host, libvirt and QEMU included.</li>
+</ul>
+<hr>
+<p><strong>Next up:</strong> <a href="../03.What-A-Cloud-Adds/">What Does a Cloud Add to Virtual Machines?</a> libvirt starts a VM on one host whenever someone asks it. With many hosts and many people asking, who decides which host, and who does the asking?</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden="">
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../01.Virtual-Machines/" class="md-footer__link md-footer__link--prev" aria-label="Previous: What Is a Virtual Machine, and What Runs It?">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                What Is a Virtual Machine, and What Runs It?
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../03.What-A-Cloud-Adds/" class="md-footer__link md-footer__link--next" aria-label="Next: What Does a Cloud Add to Virtual Machines?">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                What Does a Cloud Add to Virtual Machines?
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.indexes", "navigation.footer", "navigation.top", "content.code.copy", "content.action.edit", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
