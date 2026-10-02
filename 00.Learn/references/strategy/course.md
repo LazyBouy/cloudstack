@@ -203,7 +203,7 @@ Two candidates, genuinely different: one an everyday scene designed around Cloud
 | Template | a launch kit | What a new brand starts from; one kit, many brands; copied to a cold store the first time it's used there | `VolumeServiceImpl.java:1681-1692` |
 | Service offering | a kitchen allowance | How many burners and how much counter space a brand gets: a size, not a price | v1 F39 (offerings are sizes), to re-verify |
 | System VMs | HQ's own units | Set up in the kitchens like brands, but run by HQ: the stock runner (storage VM), the camera window (console proxy), a business's receptionist (virtual router) | `VirtualMachine.java:247-249`; System VMs docs |
-| Account, user, domain | a restaurant business, a staff login, a franchise group | The business owns the brands and gets the bill; staff log in; groups nest | Accounts docs: "Resources belong to the Account, not individual Users" |
+| Account, user, domain | a restaurant business, a staff login, a franchise group | The business owns the brands and, where the operator charges, gets the bill; staff log in; groups nest | Accounts docs: "Resources belong to the Account, not individual Users" |
 | Root admin | the kitchen company's operations team | Sees and can do everything | `RoleType.java:34` |
 | Live migration | moving a brand to another kitchen in its row, mid-service | Its shelves stay in the shared cold store | `VirtualMachineManagerImpl.java:3142-3152` |
 | VM HA | restarting brands after a kitchen's power cut | The dishes on the burners are lost, the shelves aren't; a brand whose shelves were in that kitchen's own fridge has to wait | `HighAvailabilityManagerImpl.java:388-394` |
@@ -386,6 +386,7 @@ If the user would rather pay no vocabulary at all, B is the honest alternative.
 
 ## Changelog
 
+- 2026-10-02: wording fix (main session, from 03's research, A2, accepted by the user): the business "gets the bill" only where the operator charges (usage accounting is an optional server, and the university's tenants are departments).
 - 2026-10-02: wording fix (main session, from the audit of 01.Virtual-Machines, A6): the virtual brand's mapping said "neighbours can't see each other", which is false for VMs on one network; now "neighbours are kept apart". No decision changed.
 - 2026-10-01: approved by the user (main session): Candidate A, the cloud kitchen, chosen; the module map approved as proposed, 11 optional; the lab at the end of 01.General; one exercises article per module; all the template changes in §5. hub.docker.com deferred. The home page and CLAUDE.md updated to match.
 - 2026-10-01: first proposal (strategist): eleven traits with evidence, a module map of ten modules plus one optional, two analogy candidates (the cloud kitchen, recommended; one Linux machine, scaled up) with five dropped pictures, voice and template changes, lessons from the first attempt, and decisions for the user.

@@ -25,7 +25,7 @@ What a virtual machine is, how a hypervisor runs it, and what a cloud adds.
 |---|---|---|---|
 | 01 | [What Is a Virtual Machine, and What Runs It?](01.Virtual-Machines.md) | Beginner | about 10 minutes |
 | 02 | [How Does a Hypervisor Work?](02.Hypervisors.md) | Beginner | about 15 minutes |
-| 03 | [What Does a Cloud Add to Virtual Machines?](03.What-A-Cloud-Adds.md) *(coming soon)* | Beginner | about 15 minutes |
+| 03 | [What Does a Cloud Add to Virtual Machines?](03.What-A-Cloud-Adds.md) | Beginner | about 15 minutes |
 
 ### Asking the cloud
 

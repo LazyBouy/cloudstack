@@ -1,0 +1,33 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}, "themeVariables": {"edgeLabelBackground": "#FFFFFF"}}}%%
+flowchart TB
+    %% Module 01 palette: tenants indigo, the management server orange, hosts green, VMs blue;
+    %% notes white with a dashed grey border
+    %% Lines: requests and instructions solid, the answer back dashed
+    classDef user fill:#E8EAF6,stroke:#3949AB,color:#1B1B1B
+    classDef ms fill:#FFF3E0,stroke:#EF6C00,color:#1B1B1B
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    p["A researcher of Physics,<br/>a business (tenant)"]
+    hq["HQ<br/>(management server)"]
+    subgraph k2["Kitchen (host) 2"]
+        direction LR
+        v1["Virtual brand (VM):<br/>web-01, Physics's"]
+        v2["Virtual brand (VM):<br/>one of Biology's"]
+        v1 ~~~ v2
+    end
+    p -->|"stop Biology's VM"| hq
+    hq -.->|"refused"| p
+    hq ~~~ k2
+    n1["One kitchen, two businesses:<br/>each brand at its own station"]
+    k2 --- n1
+
+    class p user
+    class hq ms
+    class k2 host
+    class v1,v2 vm
+    class n1 note
+    linkStyle 1 stroke:#424242,stroke-width:1.5px
+    linkStyle 2 stroke:#424242,stroke-width:1.5px,stroke-dasharray:6 4
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

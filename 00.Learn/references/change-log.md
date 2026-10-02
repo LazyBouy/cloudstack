@@ -9,6 +9,26 @@ How to read an entry:
 
 ---
 
+## 2026-10-02: article 03, "What Does a Cloud Add to Virtual Machines?"
+
+**Commits:** committed on `learn`, 2026-10-02 (see `git log`).
+
+**What happened:** the first article where CloudStack itself appears as a system, through the full pipeline.
+
+- **Research:** 37 findings. Three wording amendments accepted by the user (A1–A3): the request names "an operating system, a size and a place"; the business owns its brands, and the bill waits for 05 (also in `course.md`'s mapping); the management server takes every request *to the cloud*.
+- **Audit:** 25 findings (2 blockers, 11 should-fix, 12 nice-to-have), all applied or adapted, plus amendment A25 (accepted by the user). The blockers: "using a VM never goes through the management server" was false for the browser console, which the management server authenticates; and "no program of its own on the host" was false for XenServer, which gets CloudStack's XAPI plugins. The decisions are in `articles/01.General/03.What-A-Cloud-Adds/audit.md`.
+
+| Changed | How |
+|---|---|
+| `01.General/03.What-A-Cloud-Adds.md` | The article (about 15 minutes; 5 defined terms against a budget of 5) |
+| `01.General/99.Check-Yourself-Answers/03.What-A-Cloud-Adds.md` and its `README.md` | The answers page, with its Evidence section |
+| `01.General/diagrams/03-*.{mmd,png}`, `manifest.sha256` | Eight pictures; after the audit, the refusal arrow is dashed and the closed-HQ picture keeps the request frames' layout |
+| `01.General/02.Hypervisors.md`, `01.General/README.md`, `in_progress_checks.md` | 02's links to 03 resolved; row 03 written; rows for 03's links to 04, 05 and 06 |
+| `strategy/01.General.md`, `strategy/course.md` | Amendments A1–A3 and A25 |
+| `.github/scripts/readability.py` | A link title ending in "?" no longer counts as a sentence end |
+
+---
+
 ## 2026-10-02: article 02, "How Does a Hypervisor Work?"
 
 **Commits:** committed on `learn`, 2026-10-02 (see `git log`).

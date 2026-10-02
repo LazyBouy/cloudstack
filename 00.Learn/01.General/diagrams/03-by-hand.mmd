@@ -1,0 +1,27 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}, "themeVariables": {"edgeLabelBackground": "#FFFFFF"}}}%%
+flowchart LR
+    %% Module 01 palette: people indigo, hosts green; notes white with a dashed grey border
+    %% Lines: requests and instructions solid
+    classDef user fill:#E8EAF6,stroke:#3949AB,color:#1B1B1B
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    r["Requests for VMs,<br/>by email, from<br/>50 researchers"]
+    a["One admin"]
+    subgraph hs["Five KVM hosts"]
+        direction TB
+        h1["Host 1, its own libvirt"]
+        h2["Host 2, its own libvirt"]
+        h5["… Host 5, its own libvirt"]
+        h1 ~~~ h2
+        h2 ~~~ h5
+    end
+    r -->|"one at a time"| a
+    a -->|"picks a host, logs in,<br/>asks its libvirt"| hs
+    n1["Every new VM waits<br/>for this one person"]
+    a --- n1
+
+    class r,a user
+    class hs,h1,h2,h5 host
+    class n1 note
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

@@ -1,0 +1,39 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}, "themeVariables": {"edgeLabelBackground": "#FFFFFF"}}}%%
+flowchart TB
+    %% Module 01 palette: tenants indigo, the management server orange, hosts green, VMs blue
+    %% Lines: requests and instructions solid; the frame's new arrow is bold.
+    %% Every frame has the same nodes and edges (the ones not yet taken are transparent,
+    %% the VM is transparent until frame 3), so the layout doesn't move from frame to frame.
+    %% Kitchens 1 and 3 hold a transparent placeholder and get a transparent edge,
+    %% so all three kitchens have one size and one rank
+    classDef user fill:#E8EAF6,stroke:#3949AB,color:#1B1B1B
+    classDef ms fill:#FFF3E0,stroke:#EF6C00,color:#1B1B1B
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vmnew fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B,stroke-width:3.5px
+    classDef hidden fill:none,stroke:none,color:transparent
+
+    p["A researcher of Physics,<br/>a business (tenant)"]
+    hq["HQ<br/>(management server)"]
+    subgraph k1["Kitchen (host) 1"]
+        e1["Virtual brand (VM):<br/>web-01"]
+    end
+    subgraph k2["Kitchen (host) 2"]
+        vm["Virtual brand (VM):<br/>web-01"]
+    end
+    subgraph k3["Kitchen (host) 3"]
+        e3["Virtual brand (VM):<br/>web-01"]
+    end
+    p -->|"1. an OS, a size, a place"| hq
+    hq -->|"2. start web-01"| k1
+    hq -->|"2. start web-01"| k2
+    hq -->|"2. start web-01"| k3
+
+    class p user
+    class hq ms
+    class k1,k2,k3 host
+    class e1,e3 hidden
+    class vm vmnew
+    linkStyle 0 stroke:#424242,stroke-width:1.5px
+    linkStyle 2 stroke:#424242,stroke-width:1.5px
+    linkStyle 1 stroke:transparent,color:transparent
+    linkStyle 3 stroke:transparent,color:transparent
