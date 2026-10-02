@@ -1,0 +1,26 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}, "themeVariables": {"edgeLabelBackground": "#FFFFFF"}}}%%
+flowchart TB
+    %% Module 01 palette: the hypervisor's parts green, VMs blue, the VM's disk cyan
+    %% Lines: requests and instructions solid, the report back dashed; the frame's new arrow is bold.
+    %% Every frame has the same four labelled edges (the ones not yet taken are transparent),
+    %% so the layout doesn't move from frame to frame
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef disk fill:#E0F7FA,stroke:#00838F,color:#1B1B1B
+
+    g["Ubuntu, in guest mode"]
+    k["KVM, in the kernel"]
+    q["The VM's QEMU process"]
+    d["The VM's disk, on the host"]
+    g -->|"1. reaches for its disk"| k
+    k -->|"2. passes it on"| q
+    q -->|"3. writes the data"| d
+    q -.->|"4. done"| g
+
+    class g vm
+    class k,q host
+    class d disk
+    linkStyle 0 stroke:#424242,stroke-width:1.5px
+    linkStyle 1 stroke:#424242,stroke-width:1.5px
+    linkStyle 2 stroke:#424242,stroke-width:1.5px
+    linkStyle 3 stroke:#424242,stroke-width:3.5px,stroke-dasharray:6 4

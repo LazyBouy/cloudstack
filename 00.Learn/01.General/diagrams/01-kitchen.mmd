@@ -1,0 +1,26 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and hypervisors green, VMs blue; notes white with a dashed grey border
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph kit["Kitchen (host)"]
+        direction TB
+        b1["Virtual brand (VM)<br/>web server"]
+        b2["Virtual brand (VM)<br/>desktop"]
+        b3["Virtual brand (VM)<br/>database server"]
+        eq["Equipment (hypervisor)"]
+        hw["Burners and counter space<br/>(CPU, memory)"]
+        b3 ~~~ eq
+        b2 ~~~ eq
+        b1 ~~~ eq
+        eq ~~~ hw
+    end
+    n1["Each brand cooks at its own<br/>private station, kept apart<br/>from the others"]
+    kit --- n1
+
+    class kit,eq,hw host
+    class b1,b2,b3 vm
+    class n1 note
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

@@ -6,7 +6,7 @@ Each module answers one question. Module 01 gives you the whole picture, and end
 
 | Module | The question it answers |
 |---|---|
-| [01 · General](01.General/README.md) *(coming soon)* | What is CloudStack, and what happens when someone asks it for a VM? |
+| [01 · General](01.General/README.md) | What is CloudStack, and what happens when someone asks it for a VM? |
 | 02 · Management Server *(coming soon)* | What's inside the one program that runs the whole cloud? |
 | 03 · Accounts and API *(coming soon)* | Who may ask the cloud for what, and how do they prove who they are? |
 | 04 · Hosts and Hypervisors *(coming soon)* | How does CloudStack command a server it doesn't run on? |

@@ -1,0 +1,35 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and hypervisors green, VMs blue; the learner's own machine neutral grey;
+    %% notes white with a dashed grey border
+    classDef mine fill:#FAFAFA,stroke:#757575,color:#1B1B1B
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph lap["Your Linux machine"]
+        direction TB
+        procs["Processes and containers<br/>a browser, an editor, an app"]
+        k1["Its one kernel,<br/>shared by all of them"]
+        procs ~~~ k1
+    end
+    subgraph srv["A server running KVM"]
+        direction TB
+        subgraph vm["A VM: one process, seen from the server"]
+            direction TB
+            gp["Its own programs"]
+            gk["Its own kernel"]
+            gp ~~~ gk
+        end
+        k2["The server's kernel,<br/>with the hypervisor (KVM)"]
+        vm ~~~ k2
+    end
+    n1["A VM brings<br/>its own kernel"]
+    lap ~~~ srv
+    srv --- n1
+
+    class lap,procs,k1 mine
+    class srv,k2 host
+    class vm,gp,gk vm
+    class n1 note
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

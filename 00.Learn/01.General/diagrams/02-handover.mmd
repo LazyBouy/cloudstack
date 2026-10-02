@@ -1,0 +1,19 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: the hypervisor green, VMs blue; notes white with a dashed grey border
+    %% Lines: requests and instructions solid
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    g["Ubuntu's code, kernel and programs,<br/>in guest mode, straight on<br/>the real processor"]
+    h["The hypervisor"]
+    g -->|"reaches for the<br/>real machine: the<br/>processor stops it<br/>and hands over"| h
+    h -->|"deals with it,<br/>lets the guest<br/>carry on"| g
+    n1["Only some operations<br/>cause a hand-over"]
+    g --- n1
+
+    class g vm
+    class h host
+    class n1 note
+    linkStyle 2 stroke:#9E9E9E,stroke-width:1.5px

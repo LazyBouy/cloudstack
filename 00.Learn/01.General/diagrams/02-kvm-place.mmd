@@ -1,0 +1,31 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and hypervisors green, VMs blue, ordinary programs neutral grey;
+    %% notes white with a dashed grey border
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef mine fill:#FAFAFA,stroke:#757575,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph srv["KVM: a server"]
+        direction TB
+        subgraph row[" "]
+            direction LR
+            vms["VMs, each inside<br/>its QEMU process"]
+            prg["Ordinary programs"]
+            vms ~~~ prg
+        end
+        k["The Linux kernel, with KVM"]
+        hw["The server's hardware"]
+        row ~~~ k
+        k ~~~ hw
+    end
+    n1["Features of both: the kernel sits<br/>on the hardware, like type 1;<br/>ordinary programs run beside<br/>the VMs, like type 2"]
+    srv --- n1
+
+    class srv,k,hw host
+    class vms vm
+    class prg mine
+    class n1 note
+    style row fill:none,stroke:none
+    linkStyle 3 stroke:#9E9E9E,stroke-width:1.5px

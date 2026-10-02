@@ -1,0 +1,39 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and the hypervisor's parts green, VMs blue; notes white with a dashed grey border
+    %% Lines: requests and instructions solid
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef vm fill:#E3F2FD,stroke:#1565C0,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph srv["Kitchen (host): one KVM server"]
+        direction TB
+        subgraph top[" "]
+            direction LR
+            lv["libvirt<br/>(its service: libvirtd)"]
+            subgraph qs[" "]
+                direction LR
+                subgraph q1["QEMU process"]
+                    v1["VM: desktop"]
+                end
+                subgraph q2["QEMU process"]
+                    v2["VM: database server"]
+                end
+                q1 ~~~ q2
+            end
+            lv -->|"starts, stops<br/>each one"| qs
+        end
+        k["The Linux kernel, with KVM"]
+        hw["Real hardware<br/>processor (with hardware virtualisation),<br/>memory, disk, network card"]
+        top ~~~ k
+        k ~~~ hw
+    end
+    n1["New: libvirt manages the VMs"]
+    srv --- n1
+
+    class srv,q1,q2,k,hw,lv host
+    class v1,v2 vm
+    class n1 note
+    style qs fill:none,stroke:none
+    style top fill:none,stroke:none
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

@@ -1,0 +1,18 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and the hypervisor's parts green; notes white with a dashed grey border
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph srv["Kitchen (host): one KVM server"]
+        direction TB
+        k["The Linux kernel, with KVM"]
+        hw["Real hardware<br/>processor (with hardware virtualisation),<br/>memory, disk, network card"]
+        k ~~~ hw
+    end
+    n1["The equipment (hypervisor), opened:<br/>its core, KVM, is in the kernel"]
+    srv --- n1
+
+    class srv,k,hw host
+    class n1 note
+    linkStyle 1 stroke:#9E9E9E,stroke-width:1.5px

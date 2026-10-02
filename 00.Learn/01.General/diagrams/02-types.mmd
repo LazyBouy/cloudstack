@@ -1,0 +1,30 @@
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+flowchart LR
+    %% Module 01 palette: hosts and hypervisors green, VMs blue, a laptop and its operating system neutral grey;
+    %% notes white with a dashed grey border
+    classDef host fill:#E8F5E9,stroke:#2E7D32,color:#1B1B1B
+    classDef mine fill:#FAFAFA,stroke:#757575,color:#1B1B1B
+    classDef note fill:#FFFFFF,stroke:#9E9E9E,color:#424242,stroke-dasharray:4 3
+
+    subgraph t1["Type 1: a server"]
+        direction TB
+        h1["The hypervisor (ESXi or Xen),<br/>running the VMs"]
+        hw1["The server's hardware"]
+        h1 ~~~ hw1
+    end
+    subgraph t2["Type 2: a laptop"]
+        direction TB
+        h2["The hypervisor (VirtualBox, an app),<br/>running the VMs"]
+        os2["The laptop's operating system"]
+        hw2["The laptop's hardware"]
+        h2 ~~~ os2
+        os2 ~~~ hw2
+    end
+    n1["The same job;<br/>what differs is<br/>what's underneath"]
+    t1 ~~~ t2
+    t2 --- n1
+
+    class t1,hw1,h1,h2 host
+    class t2,os2,hw2 mine
+    class n1 note
+    linkStyle 4 stroke:#9E9E9E,stroke-width:1.5px

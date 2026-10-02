@@ -9,6 +9,72 @@ How to read an entry:
 
 ---
 
+## 2026-10-02: article 02, "How Does a Hypervisor Work?"
+
+**Commits:** committed on `learn`, 2026-10-02 (see `git log`).
+
+**What happened:** the hypervisor deep dive the user asked for, through the full pipeline.
+
+- **Research:** 40 findings. Four amendment requests (A1–A4), accepted by the user: the guest isn't "none the wiser" (CloudStack gives Ubuntu guests virtio disks); NIST's final SP 800-125A drops every QEMU sentence, so QEMU's role rests on NISTIR 8221, QEMU's manual and Ubuntu's docs; libvirt *can* keep a VM's description, but CloudStack hands it one at each start; KVM runs the processors and, with the processor's help, keeps memory separate.
+- **Sources:** ubuntu.com/server/docs widened to the KVM stack on Ubuntu 24.04; docs.kernel.org, libvirt.org and www.qemu.org approved.
+- **Audit:** 26 findings (1 blocker, 12 should-fix, 13 nice-to-have). The blocker: "CloudStack's program refuses to start without hardware virtualisation" was wrong. Its check only asks libvirt for an "hvm" guest type, which libvirt also reports for QEMU without KVM. The real check is the setup's `kvm-ok`, run when a host is added. The same claim was fixed on 01's answers page and in the plan (A26). The user kept docs.openstack.org lens-only, so the body now cites NIST and QEMU's docs. The decisions are in `articles/01.General/02.Hypervisors/audit.md`.
+
+| Changed | How |
+|---|---|
+| `01.General/02.Hypervisors.md` | The article (about 15 minutes; 5 defined terms against a budget of 5) |
+| `01.General/99.Check-Yourself-Answers/02.Hypervisors.md` and its `README.md` | The answers page, with its Evidence section |
+| `01.General/diagrams/02-*.{mmd,png}`, `manifest.sha256` | Ten pictures. After the audit, the start picture and the three disk-write frames run top to bottom with short labels, and the frames share one layout (future arrows transparent, the new one bold); shown at a fixed width |
+| `01.General/99.Check-Yourself-Answers/01.Virtual-Machines.md` | The agent's start-up check described accurately |
+| `01.General/README.md`, `in_progress_checks.md` | Row 02 written; the rows for 02 resolved; new rows for 02's links to 03, 06, 07 and 08 |
+| `strategy/01.General.md` | Amendments A1–A4, A25, A26 |
+| `references.md`, `.claude/settings.json` | The new and widened sources |
+
+---
+
+## 2026-10-02: a hypervisor deep dive added to module 01; 02–16 renumbered to 03–17
+
+**Commits:** committed on `learn`, 2026-10-02 (see `git log`).
+
+**What happened:** after reading article 01, the user asked for an article right after it, before "What Does a Cloud Add to Virtual Machines?", going deep on hypervisors. The strategist amended module 01's plan, and the user approved it:
+
+- **New 02.Hypervisors**, "How Does a Hypervisor Work?" (15 minutes, 5 concepts): hardware virtualisation, QEMU and libvirt on a KVM host, and type 1 and type 2 hypervisors, with KVM's place between them. It builds on 01 without repeating it; how CloudStack drives libvirt stays in 04.Hosts-And-Hypervisors.
+- **The old 02–16 became 03–17.** Only numbers and pointers changed, except three one-point changes: 08.Clusters busts "hypervisor type means type 1 or type 2"; 16's lab tour finds 02's parts; 17's exercises cover 02.
+- **New sources**, each for a narrow purpose: nvlpubs.nist.gov (NIST's final texts) and ubuntu.com/server/docs (the Ubuntu Server docs' new address).
+
+| Changed | How |
+|---|---|
+| `strategy/01.General.md` | Entry 02 added; 03–17 renumbered; ledger GEN-64–68; outcome 1; chains and order check |
+| `01.General/02.Hypervisors.md` | New stub |
+| `01.General/03…17.*.md` | The stubs renamed from 02…16, each pointing at its renumbered entry |
+| `01.General/README.md` | Outcome 1; row 02 in "Foundations"; rows renumbered |
+| `01.General/01.Virtual-Machines.md` and its answers page | "Next up" now leads to 02 with the plan's bridge; links to 09 and 15; the Ubuntu docs link at its new address; the answers page links QEMU's job to 02 |
+| `in_progress_checks.md` | Rows retargeted to 02, 09 and 15; one new row for the answers page's link to 02 |
+| `references.md`, `.claude/settings.json` | The two new sources |
+
+---
+
+## 2026-10-02: article 01, "What Is a Virtual Machine, and What Runs It?"
+
+**Commits:** committed on `learn`, 2026-10-02 (see `git log`).
+
+**What happened:** the first article of the rebuilt course, through the full pipeline with its approved strategy entry as the brief.
+
+- **Research:** 27 findings. Two amendment requests: a host is "normally a physical server" (the lab machine may be a VM); a VM is "not *just* a process" (on KVM it runs as one). The user accepted both, and chose the lab check (`lsmod | grep kvm`, then `kvm-ok`).
+- **Audit:** 25 findings (2 blockers, 9 should-fix, 14 nice-to-have). 19 applied, 5 adapted, 1 left to the user (A22, the Ubuntu docs' redirect to ubuntu.com). The decisions are in `articles/01.General/01.Virtual-Machines/audit.md`.
+
+| Changed | How |
+|---|---|
+| `01.General/01.Virtual-Machines.md` | The article (about 10 minutes; 5 defined terms against a budget of 5) |
+| `01.General/99.Check-Yourself-Answers/01.Virtual-Machines.md` and its `README.md` | The answers page, with its Evidence section (11 excerpts) |
+| `01.General/diagrams/01-*.{mmd,png}`, `manifest.sha256` | Five step pictures; after the audit, the kitchen note says "kept apart" and the two-hosts picture has no shared box |
+| `01.General/README.md`, `00.Learn/README.md` | Row 01 titled, no *(coming soon)*; module 01 no longer *(coming soon)* on the home page |
+| `in_progress_checks.md` | Three rows, for links to 02, 08 and 14 |
+| `strategy/01.General.md`, `strategy/course.md` | The two amendments; the lab check; the note style in the picture conventions; "neighbours are kept apart" in the analogy's mapping |
+| `.claude/agents/author.md` | Bookkeeping: drop the home page's *(coming soon)* with a module's first article |
+| `01.General/01.Virtual-Machines.md`, after the user's review | The Kubernetes lens now says a node may be a virtual or a physical machine (kubernetes.io), and that the comparison pictures it as a physical server |
+
+---
+
 ## 2026-10-01: module 01's learning plan approved; its skeleton built
 
 **Commits:** the first commits of the course on `learn`, 2026-10-02 (see `git log`).

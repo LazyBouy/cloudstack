@@ -51,6 +51,7 @@ The docs are versioned. The **4.22.1.1** pages describe the LTS release the inst
 | https://download.cloudstack.org/ | The community package repositories the install posts use: DEB (`ubuntu/`) and RPM (`el/`, `suse/`) packages, ARM64 builds, system VM templates (`systemvm/`) and Kubernetes Service ISOs (`cks/`) |
 | https://hub.docker.com/r/apache/cloudstack-simulator | The simulator's Docker image (`apache/cloudstack-simulator`), approved by the user on 2026-10-01 only to check which release tags exist (the JSON at `https://hub.docker.com/v2/repositories/apache/cloudstack-simulator/tags`). The image itself is documented in the repository, `tools/docker/README.md` |
 | https://documentation.ubuntu.com/server/ | The Ubuntu Server documentation, approved by the user on 2026-10-01 only for the KVM lab's Ubuntu facts (netplan, NFS, MySQL and services on Ubuntu 24.04 LTS) that CloudStack's own docs leave unstated |
+| https://ubuntu.com/server/docs/ | The Ubuntu Server documentation's new address: documentation.ubuntu.com/server/ now redirects here (301, checked 2026-10-02). Approved by the user on 2026-10-02 for the KVM lab's Ubuntu facts and article 01's `kvm-ok` check, and widened the same day to the KVM stack (KVM, QEMU, libvirt) as installed on Ubuntu 24.04 LTS, for article 02 onwards |
 | https://manpages.ubuntu.com/ | Ubuntu's manual pages, approved on 2026-10-01 for the same purpose: the exact behaviour of a command or configuration file on Ubuntu 24.04 LTS |
 | https://dev.mysql.com/doc/ | The MySQL Reference Manual, approved on 2026-10-01 only for the lab's MySQL facts (the version Ubuntu installs, the root login, `server_id`) |
 
@@ -68,6 +69,10 @@ More will be added as the project goes on.
 | Source | Use it for |
 |---|---|
 | https://csrc.nist.gov/pubs/sp/800/145/final | NIST SP 800-145, "The NIST Definition of Cloud Computing": the five essential characteristics of a cloud |
+| https://nvlpubs.nist.gov/ | NIST's final publications (the PDFs that csrc.nist.gov's pages link to), approved by the user on 2026-10-02 only for NIST's final texts, such as SP 800-125A Rev. 1 and NISTIR 8221, so articles quote finals rather than drafts |
+| https://docs.kernel.org/virt/kvm/ | The Linux kernel's own KVM documentation (`virt/kvm/api.html`, the KVM API): how QEMU and KVM hand control to each other, virtual processors as threads, guest memory. Approved by the user on 2026-10-02 |
+| https://libvirt.org/ | libvirt's documentation: the QEMU driver, the domain XML, transient and persistent domains. Approved by the user on 2026-10-02 |
+| https://www.qemu.org/docs/ | QEMU's documentation: accelerators (KVM, TCG), device emulation, virtio and vhost. Approved by the user on 2026-10-02 |
 
 ## Style model
 
