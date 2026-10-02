@@ -107,6 +107,7 @@ def measure(text):
         bolds = [b.strip() for b in BOLD.findall(unit) if b.strip().lower() not in LABELS]
         spans = INLINE.findall(unit)
         flat = INLINE.sub("X", unit)
+        flat = re.sub(r"\[[^\]]*\]", "Link", flat)   # a link's title ("…a Host?") is no sentence end
         flat = re.sub(r"[*_\[\]]", "", flat)
         n_words = len(words_in(unit.replace("`", " ")))
         total += n_words
