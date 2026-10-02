@@ -1,6 +1,6 @@
 # Publishing the blog
 
-The contents of `00.Learn/` are built into a website with [MkDocs](https://www.mkdocs.org/) and the [Material theme](https://squidfunk.github.io/mkdocs-material/). **For now the site is served only on the author's machine**, at <http://localhost:8000/>, by a small local server that is git-ignored. This page explains how the site is built, how to preview and check it, and what it would take to publish it somewhere public later. It lives in `references/`, so, like the base instruction and the reference list, it is **not** part of the site.
+The contents of `00.Learn/` are built into a website with [MkDocs](https://www.mkdocs.org/) and the [Material theme](https://squidfunk.github.io/mkdocs-material/). It's served in two places: on the author's machine, at <http://localhost:8000/>, by a small git-ignored local server; and publicly on GitHub Pages, at <https://lazybouy.github.io/cloudstack/>, since 2026-10-02. This page explains how the site is built, how to preview and check it, how it's published, and what per-post access control would take. It lives in `references/`, so, like the base instruction and the reference list, it is **not** part of the site.
 
 ## How it works
 
@@ -65,7 +65,22 @@ To (re-)render diagrams after editing their `.mmd` sources:
 .github/scripts/check-diagrams.sh
 ```
 
-## Publishing somewhere public later
+## Publishing on GitHub Pages
+
+The public site, <https://lazybouy.github.io/cloudstack/>, is the strictly built site of the committed `learn` branch, served by GitHub Pages from the fork's `gh-pages` branch.
+
+```sh
+.github/scripts/publish-pages.sh --dry-run   # build it, show what would be published
+.github/scripts/publish-pages.sh             # build it and push it to gh-pages
+```
+
+- **Only when the user asks.** Publishing makes every page public. The guard blocks the agents from the script.
+- **From committed content.** The script refuses to run with uncommitted changes in `00.Learn/` or `mkdocs.yml`, so the site always matches a commit, named in the `gh-pages` commit message.
+- **One build, one commit.** `gh-pages` holds only the latest build (with `.nojekyll`, so GitHub serves the files as they are); each publish force-pushes over the last one.
+- **Set up once, by the user:** the repository's Settings → Pages → "Deploy from a branch", branch `gh-pages`, folder `/ (root)`. GitHub runs its own `pages-build-deployment` step to serve the branch.
+- `SITE_URL` (in `mkdocs.yml`) is set to the Pages address for this build, so the 404 page finds its stylesheets.
+
+## Per-post access control, later
 
 Nothing here depends on where the site is served: it's a folder of static files. To put it on the internet with per-post access control, as the sister OpenStack course does, copy that project's setup (`/root/projects/openstack/openstack/`, its `references/publishing.md` explains every step):
 

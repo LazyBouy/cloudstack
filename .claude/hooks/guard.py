@@ -338,6 +338,10 @@ def check_command(role, argv, redirects, here, env, writable, where_allowed, saf
     if prog == "curl" and (methods & {"POST", "PUT", "PATCH", "DELETE"} or any(
             a in ("-d", "-F", "-T", "--form", "--upload-file") or a.startswith("--data") for a in args)):
         raise Deny("curl may only read (no uploads or POST/PUT/PATCH/DELETE)")
+    # Scripts are matched wherever they appear (bash x.sh, python3 x.py), not only as the program.
+    names = {os.path.basename(a) for a in argv}
+    if "publish-pages.sh" in names:
+        raise Deny("publishing the site is the main session's job, on the user's request only")
     if prog in ("gh", "wrangler"):
         raise Deny("GitHub and Cloudflare tools are off limits for this agent (read PRs with WebFetch "
                    "on api.github.com instead)")
@@ -362,7 +366,7 @@ def check_command(role, argv, redirects, here, env, writable, where_allowed, saf
             or (prog == "perl" and any(re.fullmatch(r"-[A-Za-z]*i.*", a) for a in args)):
         raise Deny("no in-place sed/perl edits; use the Edit tool so every change is visible")
     if role in ("strategist", "researcher", "auditor") and (
-            (prog == "pinned.py" and "fill" in args) or prog == "render-diagrams.sh"):
+            ("pinned.py" in names and "fill" in args) or "render-diagrams.sh" in names):
         raise Deny(f"the {role} doesn't edit posts or diagrams; record what's needed in "
                    + {"strategist": "the strategy document", "researcher": "research.md",
                       "auditor": "audit.md as a finding"}[role])

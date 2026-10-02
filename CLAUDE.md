@@ -122,7 +122,12 @@ public @interface APICommand {
 
 ### Publishing
 
-`00.Learn/` is built into a website with MkDocs Material (`mkdocs.yml`). **For now it's published only on this machine**, by the git-ignored local server: `.github/local/serve.sh` serves it at <http://localhost:8000/>, on port 8000 because a management server run from source takes 8080. The server rebuilds within a second or two of saving a post, and its `README.md` explains it. There's no access control. `00.Learn/references/publishing.md` explains the build, the checks, and how to publish publicly later.
+`00.Learn/` is built into a website with MkDocs Material (`mkdocs.yml`), in two places:
+
+- **On this machine**, by the git-ignored local server: `.github/local/serve.sh` serves it at <http://localhost:8000/>, on port 8000 because a management server run from source takes 8080. It rebuilds within a second or two of saving a post, and its `README.md` explains it.
+- **Publicly, on GitHub Pages**, at <https://lazybouy.github.io/cloudstack/> (since 2026-10-02). `.github/scripts/publish-pages.sh` builds the committed `learn` branch strictly and force-pushes the built files to the fork's `gh-pages` branch. Run it **only when the user asks**; the guard blocks the agents from it.
+
+There's no access control: every page of the site is public. `00.Learn/references/publishing.md` explains the build, the checks and both ways of serving it.
 
 `00.Learn/references/` (strategy, working files, archive, notes) is excluded from the site, so **posts never link into `references/`**. Before committing content, run:
 
@@ -183,6 +188,7 @@ docker build -t cloudstack-blog -f .github/docker/blog.Dockerfile .github   # th
 .github/scripts/readability.py --check --budget 5 00.Learn/01.General/NN-x.md   # concept and code density
 .github/scripts/reading-time.py --check --max 30                    # reading time right, 30 minutes at most
 .github/local/serve.sh                                              # the site at http://localhost:8000/ (git-ignored)
+.github/scripts/publish-pages.sh [--dry-run]                        # publish to GitHub Pages: only when the user asks
 ```
 
 Reading code at a commit needs no copy: `git show <sha>:<path>` prints a file, and `git grep -n <pattern> <sha> -- <path>` searches one.

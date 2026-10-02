@@ -10,7 +10,8 @@ mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 
 docker build -q -t cloudstack-blog -f .github/docker/blog.Dockerfile .github >/dev/null
-docker run --rm -v "$PWD":/docs -v "$out":/site cloudstack-blog build --strict -d /site
+# SITE_URL (optional) sets the address the site is built for; publish-pages.sh passes GitHub Pages'.
+docker run --rm ${SITE_URL:+-e SITE_URL="$SITE_URL"} -v "$PWD":/docs -v "$out":/site cloudstack-blog build --strict -d /site
 
 if grep -rnE --include='*.md' --exclude-dir=references '\]\([^)]*references/' 00.Learn; then
     echo "Fix the links above: posts must never link into references/." >&2
