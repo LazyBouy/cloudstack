@@ -1,0 +1,70 @@
+site_name: CloudStack from the Ground Up
+site_description: How Apache CloudStack works and why it is built that way, explained simply, with the code as the source of truth.
+# Served on this machine only for now (.github/local/serve.sh). The 404 page
+# needs the address for its stylesheets; serve.sh sets it to match its port.
+site_url: !ENV [SITE_URL, "http://localhost:8000/"]
+repo_url: https://github.com/LazyBouy/cloudstack
+repo_name: LazyBouy/cloudstack
+edit_uri: edit/learn/00.Learn/
+
+# The blog is built only from 00.Learn/. Internal notes in references/
+# (the base instruction, the reference list, publishing notes) stay off the site,
+# and so do diagram sources: posts embed the rendered PNGs.
+docs_dir: 00.Learn
+exclude_docs: |
+  references/
+  *.mmd
+  manifest.sha256
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - github-callouts
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+plugins:
+  - search
+  # Navigation order and section titles come from .nav.yml files in 00.Learn/.
+  - awesome-nav
+  # Click any image (diagrams included) to open it full-screen, with zoom.
+  - glightbox:
+      zoomable: true
+      draggable: true

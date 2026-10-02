@@ -1,0 +1,78 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.cloudstack.apache.org)",
+      "WebFetch(domain:cloudstack.apache.org)",
+      "WebFetch(domain:cwiki.apache.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:lists.apache.org)",
+      "WebFetch(domain:issues.apache.org)",
+      "WebFetch(domain:dlcdn.apache.org)",
+      "WebFetch(domain:archive.apache.org)",
+      "WebFetch(domain:download.cloudstack.org)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:documentation.ubuntu.com)",
+      "WebFetch(domain:manpages.ubuntu.com)",
+      "WebFetch(domain:dev.mysql.com)",
+      "WebFetch(domain:gitbox.apache.org)",
+      "WebFetch(domain:www.shapeblue.com)",
+      "WebFetch(domain:kubernetes.io)",
+      "WebFetch(domain:learnkube.com)",
+      "WebFetch(domain:docs.openstack.org)",
+      "WebFetch(domain:openstack.techphistudio.de)",
+      "WebFetch(domain:csrc.nist.gov)",
+      "WebSearch",
+      "Bash(.github/scripts/pinned.py *)",
+      "Bash(.github/scripts/check-excerpts.py)",
+      "Bash(.github/scripts/check-excerpts.py *)",
+      "Bash(.github/scripts/check-lists.py)",
+      "Bash(.github/scripts/check-lists.py *)",
+      "Bash(.github/scripts/check-diagrams.sh)",
+      "Bash(.github/scripts/check-diagram-styles.py *)",
+      "Bash(.github/scripts/render-diagrams.sh *)",
+      "Bash(.github/scripts/build-site.sh)",
+      "Bash(.github/scripts/build-site.sh *)",
+      "Bash(.github/scripts/check-urls.sh *)",
+      "Bash(.github/scripts/reading-time.py)",
+      "Bash(.github/scripts/reading-time.py *)",
+      "Bash(.github/scripts/readability.py)",
+      "Bash(.github/scripts/readability.py *)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git diff *)",
+      "Bash(git rev-parse *)",
+      "Bash(git merge-base *)",
+      "Bash(git grep *)",
+      "Bash(git blame *)",
+      "Bash(git cat-file *)",
+      "Bash(git rev-list *)",
+      "Bash(git describe *)",
+      "Bash(git ls-tree *)",
+      "Bash(git ls-files *)",
+      "Bash(git tag --contains *)",
+      "Bash(git tag -l *)",
+      "Edit(/00.Learn/**)"
+    ],
+    "deny": [
+      "Read(/.github/.env)",
+      "Edit(/.github/.env)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Grep|Glob|Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py\"; [ ! -f \"$f\" ] || python3 \"$f\""
+          }
+        ]
+      }
+    ]
+  }
+}

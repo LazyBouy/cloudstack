@@ -1,0 +1,7 @@
+# The course's local blog server (serve.sh and friends): on the author's
+# machine only, never committed. See 00.Learn/references/publishing.md.
+/local/
+
+# Local credentials, if publishing to a host is ever added
+/.env
+/.env.*

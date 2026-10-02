@@ -1,0 +1,5 @@
+# .github/ is the build context for the image in docker/, which needs only
+# blog-requirements.txt. Keep everything else out, local credentials (.env)
+# and the git-ignored local server included.
+*
+!blog-requirements.txt
